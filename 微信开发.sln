@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebChatDep", "微信开发\WebChatDep.csproj", "{C20BB981-4F65-4FE4-9649-0FBCAC9722EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{7EF7022F-D2A0-4DFD-873D-60CF1BDF0222}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBHelper", "DBHelper\DBHelper.csproj", "{9D03D5E0-487F-48A7-8E4C-E323474DA632}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C20BB981-4F65-4FE4-9649-0FBCAC9722EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C20BB981-4F65-4FE4-9649-0FBCAC9722EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C20BB981-4F65-4FE4-9649-0FBCAC9722EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C20BB981-4F65-4FE4-9649-0FBCAC9722EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EF7022F-D2A0-4DFD-873D-60CF1BDF0222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EF7022F-D2A0-4DFD-873D-60CF1BDF0222}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EF7022F-D2A0-4DFD-873D-60CF1BDF0222}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EF7022F-D2A0-4DFD-873D-60CF1BDF0222}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D03D5E0-487F-48A7-8E4C-E323474DA632}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D03D5E0-487F-48A7-8E4C-E323474DA632}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D03D5E0-487F-48A7-8E4C-E323474DA632}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D03D5E0-487F-48A7-8E4C-E323474DA632}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

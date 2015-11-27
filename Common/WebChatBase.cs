@@ -12,7 +12,7 @@ using System.Xml;
 namespace Common
 { 
     public abstract class WebChatBase : IHttpHandler
-    {
+    { 
           
          
        // public static Tencent.WXBizMsgCrypt WeChatCrypt;

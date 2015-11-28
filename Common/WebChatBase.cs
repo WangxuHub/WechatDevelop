@@ -11,6 +11,9 @@ using System.Xml;
 
 namespace Common
 { 
+    /// <summary>
+    /// 用来接收微信推送使用
+    /// </summary>
     public abstract class WebChatBase : IHttpHandler
     { 
           
@@ -56,7 +59,7 @@ namespace Common
 
 
             XmlDocument doc = new XmlDocument();
-            XmlNode root;
+           
             doc.LoadXml(sMsg);
 
             if(doc.FirstChild["MsgId"]!=null)

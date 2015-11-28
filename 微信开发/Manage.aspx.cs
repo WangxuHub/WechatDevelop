@@ -26,6 +26,8 @@ namespace WebChatDep
             string url = string.Format("https://api.weixin.qq.com/cgi-bin/groups/create?access_token={0}",Common.WeChatAppInfo.access_token);
             string bodyStr = string.Format("{{\"group\":{{\"name\":\"{0}\"}}}}", groupName);
             string response = Common.WeChatHelper.Post(url,bodyStr);
+
+            string asd= Common.WeChatAppInfo.ticket;
         }
     }
 }

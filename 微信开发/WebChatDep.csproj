@@ -100,11 +100,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\PublishProfiles\西部网络 虚拟主机.pubxml" />
-    <Content Include="web.config">
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="WeChatSDK.aspx" />
     <Content Include="WeChatServer.ashx" />
+    <Content Include="web.config" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

@@ -50,6 +50,9 @@
     <Compile Include="ResponseMode\access_token.cs" />
     <Compile Include="ResponseMode\group.cs" />
     <Compile Include="WebChatBase.cs" />
+    <Compile Include="WebChatSDK.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="WebInfo.cs" />
     <Compile Include="WXBizMsgCrypt.cs" />
   </ItemGroup>

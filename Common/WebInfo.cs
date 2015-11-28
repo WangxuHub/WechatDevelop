@@ -11,20 +11,10 @@ namespace Common
 {
     public static class WeChatAppInfo
     {  
-        private static string _Token = System.Configuration.ConfigurationManager.AppSettings["Token"];
-
-        private static string _sEncodingAESKey = System.Configuration.ConfigurationManager.AppSettings["sEncodingAESKey"];
-
-
-        private static string _AppID = System.Configuration.ConfigurationManager.AppSettings["AppID"];
-
-
-        private static string _Secret = System.Configuration.ConfigurationManager.AppSettings["secret"];
-
         public static string Token
         {
             get {
-                return _Token;
+                return System.Configuration.ConfigurationManager.AppSettings["Token"]; 
             }
         }
 
@@ -32,14 +22,14 @@ namespace Common
         {
             get
             {
-                return _sEncodingAESKey;
+                return System.Configuration.ConfigurationManager.AppSettings["sEncodingAESKey"];
             }
         }
         public static string AppID
         {
             get
             {
-                return _AppID;
+                return System.Configuration.ConfigurationManager.AppSettings["AppID"];
             }
         }
 
@@ -47,7 +37,7 @@ namespace Common
         {
             get
             {
-                return _Secret;
+                return System.Configuration.ConfigurationManager.AppSettings["secret"];
             }
         }
 
@@ -74,12 +64,61 @@ namespace Common
 
                     return token.access_token;
                 }
-
-
-
-                
             }
         }
+
+        #region 微信JS-SDK 配置
+        /// <summary>
+        /// js-SDK 中使用的ticket
+        /// </summary>
+        public static string ticket
+        {
+            get
+            {
+                System.Web.Caching.Cache cache = HttpRuntime.Cache;
+                if (cache.Get("ticket") != null)
+                {
+                    return cache.Get("ticket").ToString();
+                }
+                else
+                {
+                    string url = string.Format("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token={0}&type=jsapi"
+                                          , access_token);
+                    string retStr = WeChatHelper.Post(url, "");
+
+                    //{"errcode":0,"errmsg":"ok","ticket":"sM4AOVdWfPE4DxkXGEs8VBdB9iUewc7YSCGbhjD5w4sjYk-gt-BENHWmjZmazCZ6fUH254TWysS1sjiYoPDflA","expires_in":7200}
+                    Newtonsoft.Json.Linq.JObject retObj = Newtonsoft.Json.JsonConvert.DeserializeObject(retStr) as Newtonsoft.Json.Linq.JObject;
+
+                    if (retObj["errcode"] != null && retObj["errcode"].ToString() == "0")
+                    {
+                        CacheDependency dependency = new CacheDependency(null, new string[] { "access_token" });
+                        cache.Insert("ticket", retObj["ticket"].ToString(), dependency); //缓存 键值依赖
+                        return retObj["ticket"].ToString();
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                }
+            }
+        }
+
+        public static string SDKDebugger
+        {
+            get {
+                return System.Configuration.ConfigurationManager.AppSettings["SDKDebugger"];
+            }
+        }
+
+        public static string SDKjsApiList
+        {
+            get
+            {
+                return System.Configuration.ConfigurationManager.AppSettings["SDKjsApiList"];
+            }
+        }
+        #endregion
+
 
     }
 
@@ -114,6 +153,31 @@ namespace Common
         }
 
 
+        #region 
+        /// <summary>
+        /// 生成随机字符串
+        /// </summary>
+        /// <returns></returns>
+        public static  string GetRandomString(int length)
+        {
+            if (length <= 0) return "";
+
+            Random rd = new Random();
+            string str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+            StringBuilder result = new StringBuilder();
+            for (int i = 0; i < length; i++)
+            {
+                result.Append(str[rd.Next(str.Length)]);
+            }
+            return result.ToString();
+        }
+
+        public static string GetRandomString()
+        {
+            return GetRandomString(5);
+        }
+
+        #endregion
         public static string Post(string url,string bodyString)
         {
 
@@ -135,5 +199,23 @@ namespace Common
             string retStr = System.Text.Encoding.UTF8.GetString(buffer);
             return retStr;
         }
+
+        public static string GetSHA1EnryptStr(string str)
+        {
+
+            System.Security.Cryptography.SHA1 sha;
+            ASCIIEncoding enc;
+            string hash = "";
+
+            sha = new System.Security.Cryptography.SHA1CryptoServiceProvider();
+            enc = new ASCIIEncoding();
+            byte[] dataToHash = enc.GetBytes(str);
+            byte[] dataHashed = sha.ComputeHash(dataToHash);
+            hash = BitConverter.ToString(dataHashed).Replace("-", "");
+            hash = hash.ToLower();
+            return hash;
+        }
+                    
+           
     }
 }

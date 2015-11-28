@@ -201,7 +201,7 @@ namespace Tencent
             AL.Add(sTimeStamp);
             AL.Add(sNonce);
           //  AL.Add(sMsgEncrypt);
-          //   AL.Sort(new DictionarySort());
+           //  AL.Sort(new DictionarySort());
             AL.Sort();
             string raw = "";
             for (int i = 0; i < AL.Count; ++i)

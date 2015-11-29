@@ -87,6 +87,13 @@
     <Compile Include="uploadImage.aspx.designer.cs">
       <DependentUpon>uploadImage.aspx</DependentUpon>
     </Compile>
+    <Compile Include="UserControl\WeChatConfigControl.ascx.cs">
+      <DependentUpon>WeChatConfigControl.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControl\WeChatConfigControl.ascx.designer.cs">
+      <DependentUpon>WeChatConfigControl.ascx</DependentUpon>
+    </Compile>
     <Compile Include="WeChatSDK.aspx.cs">
       <DependentUpon>WeChatSDK.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -100,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\PublishProfiles\西部网络 虚拟主机.pubxml" />
+    <Content Include="UserControl\WeChatConfigControl.ascx" />
     <Content Include="WeChatSDK.aspx" />
     <Content Include="WeChatServer.ashx" />
     <Content Include="web.config" />

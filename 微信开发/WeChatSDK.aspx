@@ -1,5 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="WeChatSDK.aspx.cs" Inherits="WebChatDep.WeChatSDK" %>
 
+<%@ Register Src="~/UserControl/WeChatConfigControl.ascx" TagPrefix="uc1" TagName="WeChatConfigControl" %>
+
+
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -7,8 +10,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/>
     <title></title>
-
-
+    
+    <script src='/Resource/js/jquery-1.8.2.js'></script>
+    <script src='/Resource/js/jweixin-1.0.0.js'></script>
+    <uc1:WeChatConfigControl runat="server" ID="WeChatConfigControl" />
 <script defer="defer">
 
     wx.ready(function () {

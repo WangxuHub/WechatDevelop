@@ -61,6 +61,11 @@
     <Content Include="Content\Index.aspx" />
     <Content Include="Manage.aspx" />
     <Content Include="Resource\css\Index.css" />
+    <Content Include="Resource\image\0d254fecf73e3f7f15532bcbce9c8f4d.jpg" />
+    <Content Include="Resource\image\25eb38827a598454432bf544ceb89ca3.jpg" />
+    <Content Include="Resource\image\42155a2fa257681d24c3354fa83c0e7f.jpg" />
+    <Content Include="Resource\image\bb5aa87cad3ad8b61099a27beca3aeeb.jpg" />
+    <Content Include="Resource\image\da1a41df7208a8e23a1d2abb1e2dfc50.jpg" />
     <Content Include="Resource\image\shortCut.ico" />
     <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.css" />
     <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.min.css" />

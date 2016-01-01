@@ -60,6 +60,15 @@
                        <li>
                            <a href="#">关于</a>
                        </li>
+                       <li class="dropdown">
+                           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                               链接
+                               <span class="caret"></span>
+                           </a>
+                           <ul class="dropdown-menu" role="menu">
+                               <li><a href="subwebsite/angularIndex.html" target="_blank">Angular</a></li>
+                           </ul>
+                       </li>
                    </ul>
                </div>
            </div>

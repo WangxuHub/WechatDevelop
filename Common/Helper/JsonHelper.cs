@@ -23,6 +23,7 @@ namespace Common.Helper
     {
         public static string ToJson(this mJsonResult mJsonResult)
         {
+            
             return Newtonsoft.Json.JsonConvert.SerializeObject(mJsonResult);
         }
     }

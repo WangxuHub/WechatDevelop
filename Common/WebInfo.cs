@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
-
+using System.Text.RegularExpressions;
 namespace Common
 {
     public static class WeChatAppInfo
@@ -152,8 +152,36 @@ namespace Common
             return  (int)(dtime - new DateTime(1970, 1, 1).ToLocalTime()).TotalSeconds;
         }
 
+        /// <summary>
+        /// 从url中获取参数值
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="paramKey">参数名，大小写不敏感</param>
+        /// <returns></returns>
+        public static string GetParamValueFromUrl(this string url,string paramKey)
+        {
+            MatchCollection match= Regex.Matches(url,"(^|&)"+paramKey+"=([^$]*?)(&|$)",RegexOptions.IgnoreCase);
+            if (match != null && match.Count > 0)
+            {
+                return match[0].Groups[2].Value;
+            }
+            return "";
+        }
 
-        #region 
+
+
+        public static string GetJsonValueStr(this string jsonStr, string paramKey)
+        {
+            MatchCollection match = Regex.Matches(jsonStr, "\"" + paramKey + "\":\"(.*?)\"");
+            if (match != null && match.Count > 0)
+            {
+                return match[0].Groups[1].Value;
+            }
+            return "";
+        }
+
+
+        #region 生成随机字符串
         /// <summary>
         /// 生成随机字符串
         /// </summary>
@@ -191,6 +219,24 @@ namespace Common
             request.GetRequestStream().Write(buffer2, 0, buffer2.Length);
 
 
+            WebResponse response = request.GetResponse();
+            int length = (int)response.ContentLength;
+            byte[] buffer = new byte[length];
+            response.GetResponseStream().Read(buffer, 0, length);
+
+            string retStr = System.Text.Encoding.UTF8.GetString(buffer);
+            return retStr;
+        }
+
+
+        public static string Get(string url)
+        {
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            request.ContentType = "application/json";
+
+            
             WebResponse response = request.GetResponse();
             int length = (int)response.ContentLength;
             byte[] buffer = new byte[length];

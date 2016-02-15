@@ -66,7 +66,16 @@
     <Content Include="OAuthTest.aspx" />
     <Content Include="Resource\css\Index.css" />
     <Content Include="Resource\image\shortCut.ico" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.css" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.min.css" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap.css" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap.min.css" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\js\bootstrap.js" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\js\bootstrap.min.js" />
+    <Content Include="Resource\js\bootstrap-3.3.5\dist\js\npm.js" />
     <Content Include="Resource\js\jquery-1.8.2.js" />
+    <Content Include="Resource\js\jquery.min.js" />
     <Content Include="Resource\js\jweixin-1.0.0.js" />
   </ItemGroup>
   <ItemGroup>
@@ -98,6 +107,13 @@
     <Compile Include="Master\BootStrap.Master.designer.cs">
       <DependentUpon>BootStrap.Master</DependentUpon>
     </Compile>
+    <Compile Include="Master\BootStrapResource.Master.cs">
+      <DependentUpon>BootStrapResource.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Master\BootStrapResource.Master.designer.cs">
+      <DependentUpon>BootStrapResource.Master</DependentUpon>
+    </Compile>
     <Compile Include="OAuthTest.aspx.cs">
       <DependentUpon>OAuthTest.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -126,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Master\BootStrap.Master" />
+    <Content Include="Master\BootStrapResource.Master" />
     <None Include="Properties\PublishProfiles\西部网络 虚拟主机.pubxml" />
     <Content Include="Resource\qqOAuth\Image\Connect_logo_1.png" />
     <Content Include="Resource\qqOAuth\Image\Connect_logo_2.png" />
@@ -144,6 +161,12 @@
     <Content Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </Content>
+    <None Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.css.map" />
+    <None Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap.css.map" />
+    <None Include="Resource\js\bootstrap-3.3.5\dist\fonts\glyphicons-halflings-regular.eot" />
+    <None Include="Resource\js\bootstrap-3.3.5\dist\fonts\glyphicons-halflings-regular.ttf" />
+    <None Include="Resource\js\bootstrap-3.3.5\dist\fonts\glyphicons-halflings-regular.woff" />
+    <None Include="Resource\js\bootstrap-3.3.5\dist\fonts\glyphicons-halflings-regular.woff2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

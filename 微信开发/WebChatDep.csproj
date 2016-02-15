@@ -64,7 +64,6 @@
     <Content Include="Login.aspx" />
     <Content Include="Manage.aspx" />
     <Content Include="OAuthTest.aspx" />
-    <Content Include="Resource\css\Index.css" />
     <Content Include="Resource\image\shortCut.ico" />
     <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.css" />
     <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.min.css" />
@@ -79,6 +78,9 @@
     <Content Include="Resource\js\jweixin-1.0.0.js" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ashx\User.ashx.cs">
+      <DependentUpon>User.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Content\Index.aspx.cs">
       <DependentUpon>Index.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -143,6 +145,7 @@
   <ItemGroup>
     <Content Include="Master\BootStrap.Master" />
     <Content Include="Master\BootStrapResource.Master" />
+    <Content Include="Ashx\User.ashx" />
     <None Include="Properties\PublishProfiles\西部网络 虚拟主机.pubxml" />
     <Content Include="Resource\qqOAuth\Image\Connect_logo_1.png" />
     <Content Include="Resource\qqOAuth\Image\Connect_logo_2.png" />
@@ -179,6 +182,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Resource\css\" />
     <Folder Include="tempFile\" />
   </ItemGroup>
   <PropertyGroup>

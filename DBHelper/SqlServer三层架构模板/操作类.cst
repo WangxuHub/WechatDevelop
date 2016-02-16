@@ -32,27 +32,24 @@ namespace <%=NameSpacePrefix%>DAL
 		/// <param name="cmd">Command对象</param>
         /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-		internal static int Insert(SqlCommand cmd, <%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+		internal static <%=GetInsertReturnType()%> Insert(SqlCommand cmd, <%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
 		{
 		    cmd.Parameters.Clear();
 			<% bool existIdentity=false;foreach (ColumnSchema column in SourceTable.Columns) {if(Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value)) existIdentity=true;}%>
-			cmd.CommandText = "<%= GetInsertSql()+(existIdentity?";select @@identity":"") %>";
+			cmd.CommandText = "<%= GetInsertSql() %>";
 			//从实体中取出值放入Command的参数列表
 			<%foreach (ColumnSchema column in SourceTable.Columns) { if(!Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value)) {%>
 			<%=GetAddParameterString(column)%>
 			<% }} %>
-			<% if(existIdentity){%>
-			return Convert.ToInt32(cmd.ExecuteScalar());
-			<%}else{%>
-			return cmd.ExecuteNonQuery();
-			<%}%>
+            
+			return <%=GetInsertReturnStr()%>
 		}
 	    /// <summary>
         /// 不使用事务的插入方法
         /// </summary>
         /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-	    internal static int Insert(<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+	    internal static <%=GetInsertReturnType()%> Insert(<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
 		{
 			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
 			{
@@ -70,7 +67,7 @@ namespace <%=NameSpacePrefix%>DAL
         /// <param name="connection">实现共享Connection的对象</param>
         /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-        internal static int Insert(Connection connection,<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+        internal static <%=GetInsertReturnType()%> Insert(Connection connection,<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
         {
             return Insert(connection.Command, <%= GetCamelString(SourceTable.Name) %>);
         }
@@ -957,7 +954,7 @@ public string GetInsertSql()
 			valuesString+=",@"+column.Name;
 		}
 	}
-	return "insert into "+SourceTable.Name+" ("+fieldsString.Substring(1)+") values ("+valuesString.Substring(1)+")";
+	return "insert into "+SourceTable.Name+" ("+fieldsString.Substring(1)+") output inserted."+GetPrimaryKeyColumn().Name+" values ("+valuesString.Substring(1)+")";
 }
 public bool IsValueType(DbType dbType)
 {
@@ -1050,5 +1047,47 @@ public ColumnSchema GetPrimaryKeyColumn()
 		  return column;
 	}
 	return null;
+}
+
+//获取新增操作后的返回值，当前的主键ID，csy
+public string GetInsertReturnType()
+{
+    ColumnSchema priKey=GetPrimaryKeyColumn();
+    
+    
+	switch(priKey.DataType)
+	{
+		case DbType.Int16:return "short";
+		case DbType.Int32:return "int";
+		case DbType.Int64:return "long";
+		case DbType.Single:return "float";
+		case DbType.Double:return "double";
+		case DbType.UInt16: return "ushort";
+		case DbType.UInt32: return "uint";
+		case DbType.UInt64: return "ulong";
+        case DbType.Guid:return "Guid";
+		default:return "string";
+	}
+}
+
+
+public string GetInsertReturnStr()
+{
+	ColumnSchema priKey=GetPrimaryKeyColumn();
+    
+    
+	switch(priKey.DataType)
+	{
+		case DbType.Int16:return "Convert.ToInt16(cmd.ExecuteScalar());";
+		case DbType.Int32:return "Convert.ToInt32(cmd.ExecuteScalar());";
+		case DbType.Int64:return "Convert.ToInt64(cmd.ExecuteScalar());";
+		case DbType.Single:return "Convert.ToSingle(cmd.ExecuteScalar());";
+		case DbType.Double:return "Convert.ToDouble(cmd.ExecuteScalar());";
+		case DbType.UInt16: return "Convert.ToUInt16(cmd.ExecuteScalar());";
+		case DbType.UInt32: return "Convert.ToUInt32(cmd.ExecuteScalar());";
+		case DbType.UInt64: return "Convert.ToUInt64(cmd.ExecuteScalar());";
+        case DbType.Guid:return "Guid.Parse(cmd.ExecuteScalar().ToString());";
+		default:return "Convert.ToString(cmd.ExecuteScalar());";
+	}
 }
 </script>

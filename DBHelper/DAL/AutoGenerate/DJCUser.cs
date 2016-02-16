@@ -17,10 +17,10 @@ namespace DBHelper.DAL
 		/// <param name="cmd">Command对象</param>
         /// <param name="jCUser">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-		internal static int Insert(SqlCommand cmd, JCUser jCUser)
+		internal static Guid Insert(SqlCommand cmd, JCUser jCUser)
 		{
 		    cmd.Parameters.Clear();
-			cmd.CommandText = "insert into JC_User (UserName,PassWord,NickName,TrueName,Email,Phone,QQ,CreateTime,LastLoginTime,Birthday) values (@UserName,@PassWord,@NickName,@TrueName,@Email,@Phone,@QQ,@CreateTime,@LastLoginTime,@Birthday)";
+			cmd.CommandText = "insert into JC_User (UserName,PassWord,NickName,TrueName,Email,Phone,QQ,CreateTime,LastLoginTime,Birthday) output inserted.UserID values (@UserName,@PassWord,@NickName,@TrueName,@Email,@Phone,@QQ,@CreateTime,@LastLoginTime,@Birthday)";
 			//从实体中取出值放入Command的参数列表
 			cmd.Parameters.Add(new SqlParameter("@UserID",jCUser.UserID==null?(object)DBNull.Value:(object)jCUser.UserID));
 			cmd.Parameters.Add(new SqlParameter("@UserName",jCUser.UserName==null?(object)DBNull.Value:(object)jCUser.UserName));
@@ -33,14 +33,15 @@ namespace DBHelper.DAL
 			cmd.Parameters.Add(new SqlParameter("@CreateTime",jCUser.CreateTime.HasValue?(object)jCUser.CreateTime.Value:(object)DBNull.Value));
 			cmd.Parameters.Add(new SqlParameter("@LastLoginTime",jCUser.LastLoginTime.HasValue?(object)jCUser.LastLoginTime.Value:(object)DBNull.Value));
 			cmd.Parameters.Add(new SqlParameter("@Birthday",jCUser.Birthday.HasValue?(object)jCUser.Birthday.Value:(object)DBNull.Value));
-			return cmd.ExecuteNonQuery();
+            
+			return Guid.Parse(cmd.ExecuteScalar().ToString());
 		}
 	    /// <summary>
         /// 不使用事务的插入方法
         /// </summary>
         /// <param name="jCUser">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-	    internal static int Insert(JCUser jCUser)
+	    internal static Guid Insert(JCUser jCUser)
 		{
 			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
 			{
@@ -58,7 +59,7 @@ namespace DBHelper.DAL
         /// <param name="connection">实现共享Connection的对象</param>
         /// <param name="jCUser">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-        internal static int Insert(Connection connection,JCUser jCUser)
+        internal static Guid Insert(Connection connection,JCUser jCUser)
         {
             return Insert(connection.Command, jCUser);
         }

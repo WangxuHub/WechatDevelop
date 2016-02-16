@@ -214,8 +214,11 @@
             </div>
           </div>
           <div class="form-group">
-            <div class="col-sm-offset-4 col-sm-5">
+            <div class="col-sm-offset-4 col-sm-4">
               <button id="regSubmit" class="btn btn-primary">注册</button>
+            </div>
+            <div class="col-sm-4">
+                <p class="form-control-static"></p>
             </div>
           </div>
         </form>
@@ -297,7 +300,14 @@
         postData.regEmail = regEmail;
 
         $.post("/Ashx/User.ashx", postData, function (json) {
-            if (json.success) {
+            if (json.success) {//注册成功
+                var jqInfo = $("#regSubmit").parent().next().children(".form-control-static").text("注册成功");
+
+                jqInfo.addClass("text-success bounce animated");
+                setTimeout(function () {
+                    jqInfo.removeClass("bounce");
+                }, 1500);
+                return false;
             }
             else {
                 showWaining($("#regNickName"), json.msg)

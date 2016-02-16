@@ -14,7 +14,7 @@ namespace DBHelper.BLL
         /// </summary>
         /// <param name="jCUser">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-	    public static int Insert(JCUser jCUser)
+	    public static Guid Insert(JCUser jCUser)
 		{
 			return DJCUser.Insert(jCUser);
 		}

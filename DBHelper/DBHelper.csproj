@@ -85,6 +85,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CodeSmith模板生成三层架构的代码使用说明.doc" />
+    <None Include="SqlServer三层架构模板\CodeSmith模板生成三层架构的代码使用说明.doc" />
+    <None Include="SqlServer三层架构模板\三层架构.cst" />
+    <None Include="SqlServer三层架构模板\单表三层架构.cst" />
+    <None Include="SqlServer三层架构模板\参数类.cst" />
+    <None Include="SqlServer三层架构模板\实体映射类.cst" />
+    <None Include="SqlServer三层架构模板\实体类.cst" />
+    <None Include="SqlServer三层架构模板\属性映射类.cst" />
+    <None Include="SqlServer三层架构模板\操作类.cst" />
+    <None Include="SqlServer三层架构模板\表业务逻辑类.cst" />
+    <None Include="SqlServer三层架构模板\视图业务逻辑类.cst" />
+    <None Include="SqlServer三层架构模板\视图实体类.cst" />
+    <None Include="SqlServer三层架构模板\视图属性映射类.cst" />
+    <None Include="SqlServer三层架构模板\视图操作类.cst" />
+    <None Include="SqlServer三层架构模板\语法分析器类.cst" />
+    <None Include="SqlServer三层架构模板\连接类.cst" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

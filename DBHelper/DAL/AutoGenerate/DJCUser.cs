@@ -34,6 +34,7 @@ namespace DBHelper.DAL
 			cmd.Parameters.Add(new SqlParameter("@LastLoginTime",jCUser.LastLoginTime.HasValue?(object)jCUser.LastLoginTime.Value:(object)DBNull.Value));
 			cmd.Parameters.Add(new SqlParameter("@Birthday",jCUser.Birthday==null?(object)DBNull.Value:(object)jCUser.Birthday));
 			return cmd.ExecuteNonQuery();
+
 		}
 	    /// <summary>
         /// 不使用事务的插入方法

@@ -177,6 +177,7 @@ public string GetDataTypeString(DbType dbType)
 		case DbType.Object: return "object";
 		case DbType.Binary:return "byte[]";
 		case DbType.Time: return "TimeSpan";
+        case DbType.Guid: return "Guid?";
 		default:return "string";
 	}
 }

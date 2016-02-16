@@ -2,7 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 
-namespace DBHelperDAL
+namespace DBHelper.DAL
 {
     internal partial class Connection : IDisposable
     {

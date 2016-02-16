@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DBHelperObjectQuery
+namespace DBHelper.ObjectQuery
 {
     internal partial class JCUserMap:IMap
 	{

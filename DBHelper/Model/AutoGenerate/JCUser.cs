@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using DBHelperDAL;
+using DBHelper.DAL;
 
-namespace DBHelperModel
+namespace DBHelper.Model
 {
 	[Serializable]
     public partial class JCUser

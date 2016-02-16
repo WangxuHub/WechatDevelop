@@ -1,10 +1,10 @@
 ﻿using System;
-using DBHelperDAL;
-using DBHelperModel;
+using DBHelper.DAL;
+using DBHelper.Model;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DBHelperBLL
+namespace DBHelper.BLL
 {
     public partial class BJCUser
 	{

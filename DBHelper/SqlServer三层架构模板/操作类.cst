@@ -917,6 +917,9 @@ public string SetEntityValueString(ColumnSchema column)
 		case DbType.Binary:
 			str+="(byte[])dr[\""+column.Name+"\"]";
 			break;
+        case DbType.Guid:
+            str ="Guid.TryParse(dr[\""+column.Name+"\"].ToString(),out entity."+GetPasicString(column.Name)+";)";
+            break;
 		default:
 		    str+="dr[\""+column.Name+"\"].ToString()";
 			break;

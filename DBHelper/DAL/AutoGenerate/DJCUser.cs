@@ -2,11 +2,11 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Collections;
-using DBHelperModel;
-using DBHelperObjectQuery;
+using DBHelper.Model;
+using DBHelper.ObjectQuery;
 using System.Collections.Generic;
 
-namespace DBHelperDAL
+namespace DBHelper.DAL
 {
     internal partial class DJCUser
 	{
@@ -591,7 +591,7 @@ namespace DBHelperDAL
 		    JCUser entity = new JCUser ();
 			if(dr["UserID"]!=System.DBNull.Value)
 			{
-			    entity.UserID=dr["UserID"].ToString();
+			    Guid.TryParse(dr["UserID"].ToString(),out entity.UserID;);
 			}
 			if(dr["UserName"]!=System.DBNull.Value)
 			{

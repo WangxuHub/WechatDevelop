@@ -6,5 +6,5 @@ namespace DBHelper.Model
 {
     public partial class JCUser
     {
-    }
+    } 
 }

@@ -591,7 +591,7 @@ namespace DBHelper.DAL
 		    JCUser entity = new JCUser ();
 			if(dr["UserID"]!=System.DBNull.Value)
 			{
-			    Guid.TryParse(dr["UserID"].ToString(),out entity.UserID;);
+			    Guid tempGuid = new Guid();Guid.TryParse(dr["UserID"].ToString(),out tempGuid);entity.UserID = tempGuid;;
 			}
 			if(dr["UserName"]!=System.DBNull.Value)
 			{

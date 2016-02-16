@@ -65,6 +65,7 @@
     <Content Include="Manage.aspx" />
     <Content Include="OAuthTest.aspx" />
     <Content Include="Resource\css\animate.css" />
+    <Content Include="Resource\image\favicon.ico" />
     <Content Include="Resource\image\shortCut.ico" />
     <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.css" />
     <Content Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.min.css" />

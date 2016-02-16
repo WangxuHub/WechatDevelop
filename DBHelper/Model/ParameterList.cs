@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DBHelper.Model
+namespace DBHelperModel
 {
 	public class ParameterList:System.Collections.Generic.Dictionary<string,object>
     {

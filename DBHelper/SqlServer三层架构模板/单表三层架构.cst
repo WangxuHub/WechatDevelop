@@ -17,10 +17,14 @@ Description: 如果只改动了一个表的表结构，可以使用该模板进�
 <%--如果目录不存在，创建目录--%>
 <% if(!Directory.Exists(OutputDirectory)) Directory.CreateDirectory(OutputDirectory); %>
 <% if(!Directory.Exists(OutputDirectory+"\\DAL")) Directory.CreateDirectory(OutputDirectory+"\\DAL"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\DAL\\AutoGenerate")) Directory.CreateDirectory(OutputDirectory+"\\DAL\\AutoGenerate"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\DAL\\Extension")) Directory.CreateDirectory(OutputDirectory+"\\DAL\\Extension"); %>
 <% if(!Directory.Exists(OutputDirectory+"\\BLL")) Directory.CreateDirectory(OutputDirectory+"\\BLL"); %>
 <% if(!Directory.Exists(OutputDirectory+"\\BLL\\AutoGenerate")) Directory.CreateDirectory(OutputDirectory+"\\BLL\\AutoGenerate"); %>
 <% if(!Directory.Exists(OutputDirectory+"\\BLL\\Extension")) Directory.CreateDirectory(OutputDirectory+"\\BLL\\Extension"); %>
 <% if(!Directory.Exists(OutputDirectory+"\\Model")) Directory.CreateDirectory(OutputDirectory+"\\Model"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\Model\\AutoGenerate")) Directory.CreateDirectory(OutputDirectory+"\\Model\\AutoGenerate"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\Model\\Extension")) Directory.CreateDirectory(OutputDirectory+"\\Model\\Extension"); %>
 <% if(!Directory.Exists(OutputDirectory+"\\ObjectQuery")) Directory.CreateDirectory(OutputDirectory+"\\ObjectQuery"); %>
 <%
 //生成表相关类
@@ -64,7 +68,7 @@ public void OutputEntityTemplate(TableSchema table)
     StreamWriter fileWriter = null;
     try
 	{
-		fileWriter = new StreamWriter(OutputDirectory+"\\Model\\"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+		fileWriter = new StreamWriter(OutputDirectory+"\\Model\\AutoGenerate\\"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
 	}
 	catch
 	{
@@ -100,7 +104,7 @@ public void OutputOperatorTemplate(TableSchema table)
     StreamWriter fileWriter = null;
     try
 	{
-		fileWriter = new StreamWriter(OutputDirectory+"\\DAL\\D"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+		fileWriter = new StreamWriter(OutputDirectory+"\\DAL\\AutoGenerate\\D"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
 	}
 	catch
 	{
@@ -155,30 +159,12 @@ public void OutputTableBLExtension(TableSchema table)
 public void OutputBLExtension(string className)
 {
 	string fileName=OutputDirectory+"\\BLL\\Extension\\B"+className+".cs";
-	if(File.Exists(fileName))
-	    return;
-	StreamWriter fileWriter = null;
-    try
-	{
-		fileWriter = new StreamWriter(fileName, false,System.Text.Encoding.UTF8);
-	}
-	catch
-	{
-		return;
-	}
-	fileWriter.WriteLine("using System;");
-    fileWriter.WriteLine("using "+NameSpacePrefix+"DAL;");
-    fileWriter.WriteLine("using "+NameSpacePrefix+"Model;");
-    fileWriter.WriteLine("using "+NameSpacePrefix+"Search;");
-    fileWriter.WriteLine("using System.Collections;");
-    fileWriter.WriteLine("using System.Collections.Generic;");
-    fileWriter.WriteLine("namespace "+NameSpacePrefix+"BLL");
-    fileWriter.WriteLine("{");
-    fileWriter.WriteLine("    public partial class B"+className);
-    fileWriter.WriteLine("    {");
-    fileWriter.WriteLine("    }");
-    fileWriter.WriteLine("}");
-    fileWriter.Close();
+    
+    string dirName=OutputDirectory+"\\BLL\\Extension";
+    if(!System.IO.Directory.Exists(dirName))
+    {
+        System.IO.Directory.CreateDirectory(dirName);
+    }
 }
 //输出表业务逻辑类到文件
 public void OutputTableBLTemplate(TableSchema table) 

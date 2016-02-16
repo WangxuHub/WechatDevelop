@@ -2,11 +2,11 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Collections;
-using DBHelper.Model;
-using DBHelper.ObjectQuery;
+using DBHelperModel;
+using DBHelperObjectQuery;
 using System.Collections.Generic;
 
-namespace DBHelper.DAL
+namespace DBHelperDAL
 {
     internal partial class DJCUser
 	{
@@ -20,7 +20,7 @@ namespace DBHelper.DAL
 		internal static int Insert(SqlCommand cmd, JCUser jCUser)
 		{
 		    cmd.Parameters.Clear();
-			cmd.CommandText = "insert into JC_User (UserID,UserName,PassWord,NickName,TrueName,Email,Phone,QQ,CreateTime,LastLoginTime,Birthday) values (@UserID,@UserName,@PassWord,@NickName,@TrueName,@Email,@Phone,@QQ,@CreateTime,@LastLoginTime,@Birthday)";
+			cmd.CommandText = "insert into JC_User (UserName,PassWord,NickName,TrueName,Email,Phone,QQ,CreateTime,LastLoginTime,Birthday) values (@UserName,@PassWord,@NickName,@TrueName,@Email,@Phone,@QQ,@CreateTime,@LastLoginTime,@Birthday)";
 			//从实体中取出值放入Command的参数列表
 			cmd.Parameters.Add(new SqlParameter("@UserID",jCUser.UserID==null?(object)DBNull.Value:(object)jCUser.UserID));
 			cmd.Parameters.Add(new SqlParameter("@UserName",jCUser.UserName==null?(object)DBNull.Value:(object)jCUser.UserName));
@@ -32,7 +32,7 @@ namespace DBHelper.DAL
 			cmd.Parameters.Add(new SqlParameter("@QQ",jCUser.QQ==null?(object)DBNull.Value:(object)jCUser.QQ));
 			cmd.Parameters.Add(new SqlParameter("@CreateTime",jCUser.CreateTime.HasValue?(object)jCUser.CreateTime.Value:(object)DBNull.Value));
 			cmd.Parameters.Add(new SqlParameter("@LastLoginTime",jCUser.LastLoginTime.HasValue?(object)jCUser.LastLoginTime.Value:(object)DBNull.Value));
-			cmd.Parameters.Add(new SqlParameter("@Birthday",jCUser.Birthday==null?(object)DBNull.Value:(object)jCUser.Birthday));
+			cmd.Parameters.Add(new SqlParameter("@Birthday",jCUser.Birthday.HasValue?(object)jCUser.Birthday.Value:(object)DBNull.Value));
 			return cmd.ExecuteNonQuery();
 		}
 	    /// <summary>
@@ -188,7 +188,7 @@ namespace DBHelper.DAL
 			cmd.Parameters.Add(new SqlParameter("@QQ",jCUser.QQ==null?(object)DBNull.Value:(object)jCUser.QQ));
 			cmd.Parameters.Add(new SqlParameter("@CreateTime",jCUser.CreateTime.HasValue?(object)jCUser.CreateTime.Value:(object)DBNull.Value));
 			cmd.Parameters.Add(new SqlParameter("@LastLoginTime",jCUser.LastLoginTime.HasValue?(object)jCUser.LastLoginTime.Value:(object)DBNull.Value));
-			cmd.Parameters.Add(new SqlParameter("@Birthday",jCUser.Birthday==null?(object)DBNull.Value:(object)jCUser.Birthday));
+			cmd.Parameters.Add(new SqlParameter("@Birthday",jCUser.Birthday.HasValue?(object)jCUser.Birthday.Value:(object)DBNull.Value));
 			cmd.Parameters.Add(new SqlParameter("@UserID", jCUser.UserID));
             return cmd.ExecuteNonQuery();
 		}
@@ -631,7 +631,7 @@ namespace DBHelper.DAL
 			}
 			if(dr["Birthday"]!=System.DBNull.Value)
 			{
-			    entity.Birthday=dr["Birthday"].ToString();
+			    entity.Birthday=Convert.ToDateTime(dr["Birthday"]);
 			}
 			return entity;
 		}

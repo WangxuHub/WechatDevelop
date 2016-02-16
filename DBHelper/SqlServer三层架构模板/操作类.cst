@@ -944,7 +944,9 @@ public string GetInsertSql()
 	foreach(ColumnSchema column in SourceTable.Columns)
 	{
 		//如果该字段不是标识列，加入到插入的Sql语句中
-		if(!Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value))
+		if(!Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value)
+          &&!(column.DataType==DbType.Guid && column.IsPrimaryKeyMember)  
+            )
 		{
 			fieldsString+=","+column.Name;
 			valuesString+=",@"+column.Name;

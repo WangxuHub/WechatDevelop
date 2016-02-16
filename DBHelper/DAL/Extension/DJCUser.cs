@@ -3,9 +3,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Collections;
 using System.Collections.Generic;
-using DBHelper.Model;
-using DBHelper.ObjectQuery;
-namespace DBHelper.DAL
+using DBHelperModel;
+using DBHelperObjectQuery;
+namespace DBHelperDAL
 {
     internal partial class DJCUser
     {

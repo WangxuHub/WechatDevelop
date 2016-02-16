@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using DBHelper.DAL;
+using DBHelperDAL;
 
-namespace DBHelper.Model
+namespace DBHelperModel
 {
 	[Serializable]
     public partial class JCUser
 	{
-        private string userID; 
+        private Guid? userID; 
         private string userName; 
         private string passWord; 
         private string nickName; 
@@ -18,13 +18,13 @@ namespace DBHelper.Model
         private string qQ; 
         private DateTime? createTime; 
         private DateTime? lastLoginTime; 
-        private string birthday; 
+        private DateTime? birthday; 
 	
 	
 	    /// <summary>
         /// 主键
         /// </summary>
-		public string UserID
+		public Guid? UserID
 		{
 		    get{ return userID; }
 			set{ userID=value; }
@@ -104,7 +104,7 @@ namespace DBHelper.Model
 	    /// <summary>
         /// 
         /// </summary>
-		public string Birthday
+		public DateTime? Birthday
 		{
 		    get{ return birthday; }
 			set{ birthday=value; }

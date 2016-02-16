@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using DBHelper.DAL;
-namespace DBHelper.Model
+using DBHelperDAL;
+namespace DBHelperModel
 {
     public partial class JCUser
     {

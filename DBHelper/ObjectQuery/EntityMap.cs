@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DBHelper.ObjectQuery
+namespace DBHelperObjectQuery
 {
     internal class EntityMap
     {

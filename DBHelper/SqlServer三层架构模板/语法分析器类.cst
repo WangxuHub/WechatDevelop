@@ -1,9 +1,20 @@
-﻿using System;
+﻿<%-- 
+Name:实体类的模板
+Author:黄小云
+Description:生成实体类的模板
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="cs" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace DBHelper.ObjectQuery
+namespace <%=NameSpacePrefix%>ObjectQuery
 {
 	internal class SyntaxAnalyzer
     {

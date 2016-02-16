@@ -1,8 +1,19 @@
-﻿using System;
+﻿<%-- 
+Name:实体类的模板
+Author:黄小云
+Description:生成实体类的模板
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DBHelper.Model
+namespace <%=NameSpacePrefix%>Model
 {
 	public class ParameterList:System.Collections.Generic.Dictionary<string,object>
     {

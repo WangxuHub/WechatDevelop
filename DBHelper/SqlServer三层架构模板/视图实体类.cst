@@ -1,0 +1,94 @@
+﻿<%-- 
+Name:实体类的模板
+Author:黄小云
+Description:生成实体类的模板
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="SourceView" Type="SchemaExplorer.ViewSchema" Category="Context" Description="生成实体类的源视图" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+using System;
+using System.Collections;
+
+namespace <%=NameSpacePrefix%>Model
+{
+    public partial class <%= GetPasicString(SourceView.Name) %>
+	{
+    <% for (int i = 0; i < SourceView.Columns.Count; i++) { %>
+        <%= ParseField(SourceView.Columns[i]) %> 
+    <% } %>	
+	
+	<% for (int i = 0; i < SourceView.Columns.Count; i++) { %>
+        //<%= SourceView.Columns[i].Description %>
+		<%= ParseProperty(SourceView.Columns[i]) %>
+		{
+		    get{ return <%= GetCamelString(SourceView.Columns[i].Name) %>;}
+			set{<%= GetCamelString(SourceView.Columns[i].Name) %>=value;}
+		}
+    <% } %>
+	}
+}
+<script runat="template">
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_');
+	foreach(string str in strList)
+	{
+		pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+//获取Camel规则的字符串
+public string GetCamelString(string var)
+{
+	
+	string[] strList=var.Split('_');
+	string camelString=strList[0].Substring(0,1).ToLower()+strList[0].Substring(1);
+	for(int i=1; i<strList.Length; i++)
+	{
+		string str=strList[i];
+		camelString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	if(camelString=="class")
+	    camelString="cls";
+	return camelString;
+}
+public string ParseField(ViewColumnSchema column)
+{
+	string typeString=GetDataTypeString(column.DataType);
+	return "private "+typeString+" "+GetCamelString(column.Name)+";";
+}
+public string ParseProperty(ViewColumnSchema column)
+{
+	string typeString=GetDataTypeString(column.DataType);
+	return "public "+typeString+" "+GetPasicString(column.Name);
+}
+public string GetDataTypeString(DbType dbType)
+{
+	switch(dbType)
+	{
+		case DbType.Boolean: return "bool?";
+	    case DbType.Byte:return "byte?";
+		case DbType.SByte: return "sbyt?";
+		case DbType.Int16:return "short?";
+		case DbType.Int32:return "int?";
+		case DbType.Int64:return "long?";
+		case DbType.DateTime:case DbType.Date:return "DateTime?";
+		case DbType.Single:return "float?";
+		case DbType.Double:return "double?";
+		case DbType.UInt16: return "ushort?";
+		case DbType.UInt32: return "uint?";
+		case DbType.UInt64: return "ulong?";
+		case DbType.Currency:case DbType.Decimal:case DbType.VarNumeric:return "Decimal?";
+		case DbType.Object: return "object";
+		case DbType.Binary:return "byte[]";
+		case DbType.Time: return "TimeSpan";
+		default:return "string";
+	}
+}
+</script>

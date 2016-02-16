@@ -1,0 +1,1047 @@
+﻿<%-- 
+Name:操作类模板
+Author: 黄小云
+Description: 生成实体类的操作类。
+--%>
+<%@ CodeTemplate Language="C#" Debuge="True" Inherits="" ResponseEncoding="UTF-8" TargetLanguage="cs" Src="" Debug="False" Description="Template description here." %>
+<%@ Property Name="ConnectionString" Type="System.String" Default="ConnectionString" Optional="True" Category="Strings" Description="数据库连接串在配置文件中的的name" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="源表" %>
+<%@ Property Name="XmlSerialization" Type="System.Boolean" Default="False" Optional="False" Category="Xml序列化" Description="是否要进行XML序列化，如果要进行XML序列化，不能循环引用，所以查询子对象的集合时集合中的所有子对象会损失对父对象的引用" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<% collectionString="List<"+GetPasicString(SourceTable.Name)+">"; %>
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Collections;
+using <%=NameSpacePrefix%>Model;
+using <%=NameSpacePrefix%>ObjectQuery;
+using System.Collections.Generic;
+
+namespace <%=NameSpacePrefix%>DAL
+{
+    internal partial class D<%= GetPasicString(SourceTable.Name) %>
+	{
+	    #region 插入实体操作部份
+	    /// <summary>
+        /// 插入
+        /// </summary>
+		/// <param name="cmd">Command对象</param>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>标识列值或影响的记录行数</returns>
+		internal static int Insert(SqlCommand cmd, <%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+		{
+		    cmd.Parameters.Clear();
+			<% bool existIdentity=false;foreach (ColumnSchema column in SourceTable.Columns) {if(Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value)) existIdentity=true;}%>
+			cmd.CommandText = "<%= GetInsertSql()+(existIdentity?";select @@identity":"") %>";
+			//从实体中取出值放入Command的参数列表
+			<%foreach (ColumnSchema column in SourceTable.Columns) { if(!Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value)) {%>
+			<%=GetAddParameterString(column)%>
+			<% }} %>
+			<% if(existIdentity){%>
+			return Convert.ToInt32(cmd.ExecuteScalar());
+			<%}else{%>
+			return cmd.ExecuteNonQuery();
+			<%}%>
+		}
+	    /// <summary>
+        /// 不使用事务的插入方法
+        /// </summary>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>标识列值或影响的记录行数</returns>
+	    internal static int Insert(<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+		{
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+			{
+				conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return Insert(cmd, <%= GetCamelString(SourceTable.Name) %>);
+                }
+			}
+		}
+		
+		/// <summary>
+        /// 使用事务的插入方法
+        /// </summary>
+        /// <param name="connection">实现共享Connection的对象</param>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>标识列值或影响的记录行数</returns>
+        internal static int Insert(Connection connection,<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+        {
+            return Insert(connection.Command, <%= GetCamelString(SourceTable.Name) %>);
+        }
+		#endregion
+		
+		#region 删除实体操作
+		
+		<% if(ExistPK()) {%><%--如果存在主键字段才生成根据主键的删除方法--%>
+		/// <summary>
+        /// 删除
+        /// </summary>
+		/// <param name="cmd">Command对象</param>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>影响的记录行数</returns>
+		internal static int ExcuteDeleteCommand(SqlCommand cmd, <%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+        {
+			cmd.Parameters.Clear();
+            cmd.CommandText = "delete from <%= SourceTable.Name+" where "+GetPrimaryKeyColumn().Name+"=@"+GetPrimaryKeyColumn().Name %>";
+            //从实体中取出值放入Command的参数列表
+		    cmd.Parameters.Add(new SqlParameter("@<%= GetPrimaryKeyColumn().Name %>", <%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(GetPrimaryKeyColumn().Name) %>));
+            return cmd.ExecuteNonQuery();
+        }
+		/// <summary>
+        /// 不使用事务的删除方法
+        /// </summary>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int Delete(<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+        {
+            using (SqlConnection conn = new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return ExcuteDeleteCommand(cmd, <%= GetCamelString(SourceTable.Name) %>);
+                }
+            }
+        }
+		/// <summary>
+        /// 使用事务的删除方法
+        /// </summary>
+        /// <param name="connection">实现共享Connection的对象</param>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int Delete(Connection connection,<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+        {
+            return  ExcuteDeleteCommand(connection.Command, <%= GetCamelString(SourceTable.Name) %>);
+		}
+		<% } %><%--结束判断是否存在主键--%>
+		
+		/// <summary>
+        /// 执行删除命令
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int ExcuteDeleteCommand(SqlCommand cmd, string oql, ParameterList parameters)
+        {
+            //解析过滤部份Sql语句
+            string filterString = SyntaxAnalyzer.ParseSql(oql, new <%= GetPasicString(SourceTable.Name)%>Map());
+            if (filterString != string.Empty)
+            {
+                filterString = " where " + filterString;
+            }
+            cmd.Parameters.Clear();
+            cmd.CommandText = "delete from <%= SourceTable.Name%> " + filterString;
+            //添加参数
+            if (parameters != null)
+            {
+                foreach (string key in parameters.Keys)
+                {
+                    cmd.Parameters.Add(new SqlParameter(key, parameters[key]));
+                }
+            }
+            return cmd.ExecuteNonQuery();
+        }
+		
+		/// <summary>
+        /// 不使用事务的删除方法
+        /// </summary>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int Delete(string oql, ParameterList parameters)
+        {
+            using (SqlConnection conn = new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return ExcuteDeleteCommand(cmd, oql, parameters);
+                }
+            }
+        }
+		
+		/// <summary>
+        /// 使用事务的删除方法
+        /// </summary>
+        /// <param name="connection">实现共享Connection的对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int Delete(Connection connection, string oql, ParameterList parameters)
+        {
+            return ExcuteDeleteCommand(connection.Command, oql, parameters);
+        }
+		
+		#endregion
+		
+		#region 更新实体操作
+		
+		<% if(ExistPK()) {%>
+		/// <summary>
+        /// 更新
+        /// </summary>
+		/// <param name="cmd">Command对象</param>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>影响的记录行数</returns>
+		internal static int ExcuteUpdateCommand(SqlCommand cmd, <%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+		{
+		    cmd.CommandText = "<%= GetUpdateSql() %>";
+			//从实体中取出值放入Command的参数列表
+			<% foreach(ColumnSchema column in SourceTable.Columns) { %>
+			    <% if(!Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value) && !column.IsPrimaryKeyMember) {%>
+			<%=GetAddParameterString(column)%>
+                <% } %>
+			<% } %>
+			cmd.Parameters.Add(new SqlParameter("@<%= GetPrimaryKeyColumn().Name %>", <%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(GetPrimaryKeyColumn().Name) %>));
+            return cmd.ExecuteNonQuery();
+		}
+		
+		/// <summary>
+        /// 不使用事务的更新方法
+        /// </summary>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>影响的记录行数</returns>
+	    internal static int Update(<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+		{
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+			{
+				conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return ExcuteUpdateCommand(cmd, <%= GetCamelString(SourceTable.Name) %>);
+                }
+			}
+		}
+		/// <summary>
+        /// 使用事务的更新方法
+        /// </summary>
+        /// <param name="connection">实现共享Connection的对象</param>
+        /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int Update(Connection connection,<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+        {
+            return ExcuteUpdateCommand(connection.Command, <%= GetCamelString(SourceTable.Name) %>);
+		}
+		<% } %>
+		/// <summary>
+        /// 执行更新命令
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int ExcuteUpdateCommand(SqlCommand cmd, string oql, ParameterList parameters)
+        {
+            //解析过滤部份Sql语句
+            string updateString = SyntaxAnalyzer.ParseSql(oql, new <%= GetPasicString(SourceTable.Name)%>Map());
+            cmd.CommandText = "update <%= SourceTable.Name%> set " + updateString;
+			cmd.Parameters.Clear();
+            //添加参数
+            if (parameters != null)
+            {
+                foreach (string key in parameters.Keys)
+                {
+                    cmd.Parameters.Add(new SqlParameter(key, parameters[key]));
+                }
+            }
+            return cmd.ExecuteNonQuery();
+        }
+		
+		/// <summary>
+        /// 不使用事务的更新方法
+        /// </summary>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int Update(string oql, ParameterList parameters)
+        {
+            using (SqlConnection conn = new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return ExcuteUpdateCommand(cmd, oql, parameters);
+                }
+            }
+        }
+		
+		/// <summary>
+        /// 使用事务的更新方法
+        /// </summary>
+        /// <param name="connection">实现共享Connection的对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>影响的记录行数</returns>
+        internal static int Update(Connection connection, string oql, ParameterList parameters)
+        {
+            return ExcuteUpdateCommand(connection.Command, oql, parameters);
+        }
+		#endregion
+		
+		#region 查询实体集合
+		/// <summary>
+        /// 执行Command获取对象列表
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> ExcuteSelectCommand(SqlCommand cmd,RecursiveType recursiveType,int recursiveDepth)
+        {
+            <%= collectionString %> <%=GetCamelString(SourceTable.Name) %>List = new <%= collectionString %>();
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    <%=GetPasicString(SourceTable.Name) %> <%=GetCamelString(SourceTable.Name) %> = DataReaderToEntity(dr);
+                    <%=GetCamelString(SourceTable.Name) %>List.Add(<%=GetCamelString(SourceTable.Name) %>);
+                }
+            }
+			<%if(SourceTable.ForeignKeys.Count>0 || PrimaryKeyReferred()){%>
+			foreach(<%=GetPasicString(SourceTable.Name) %> <%=GetCamelString(SourceTable.Name) %> in <%=GetCamelString(SourceTable.Name) %>List)
+			{
+				<%if(SourceTable.ForeignKeys.Count>0){%>
+				//由外键获取相关实体
+				if(recursiveType==RecursiveType.Parent && recursiveDepth!=0)
+				{
+				<% foreach(TableKeySchema tableKey in SourceTable.ForeignKeys) { %>
+					<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(GetForeignKeyEntityName(tableKey.ForeignKeyMemberColumns[0].Name)) %> = D<%= GetPasicString(tableKey.PrimaryKeyTable.Name) %>.SelectSingle(cmd,<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyMemberColumns[0].Name) %>,recursiveType,recursiveDepth-1);
+				<% } %>
+				}
+				<% } %>
+				<%if(PrimaryKeyReferred()){%>
+				//由外键获取相关实体
+				if(recursiveType==RecursiveType.Child && recursiveDepth!=0)
+				{
+				 	<% System.Collections.Generic.Dictionary<string,int> counts=new System.Collections.Generic.Dictionary<string,int>();
+						foreach(TableKeySchema tableKey in SourceTable.Keys) {
+					if(tableKey.PrimaryKey.Table==SourceTable) 
+					{
+						if(counts.ContainsKey(tableKey.ForeignKeyTable.Name)) 
+							counts[tableKey.ForeignKeyTable.Name]++; 
+						else 
+			    			counts.Add(tableKey.ForeignKeyTable.Name, 1);
+					    if(tableKey.ForeignKeyTable.ForeignKeys.Count==1){%>				    
+					<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, <%=GetCamelString(SourceTable.Name) %>, recursiveDepth-1);
+					    <%} else {%>
+					<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, "<%=tableKey.ForeignKeyMemberColumns[0].Name %>",<%=GetCamelString(SourceTable.Name) %>, recursiveDepth-1);
+					<%}}}%>
+				}
+				<% }%>
+			}
+			<% }%>
+			return <%=GetCamelString(SourceTable.Name) %>List;
+        }
+		<%--如果表存在外键，则生成供父对象调用获取该父对象所有子对象集合的函数--%>
+		<%if(SourceTable.ForeignKeys.Count>0) { if(SourceTable.ForeignKeys.Count==1) {%>
+		/// <summary>
+        /// 该函数在父对象的子对象集合被访问时调用，用于获取该父对象的所有子对象
+        /// </summary>
+        /// <param name="parent">父对象</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> InvokeByParentEntity(<%=GetPasicString(SourceTable.ForeignKeys[0].PrimaryKeyTable.Name)%> parent)
+        {
+		    using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+					return InvokeByParent(cmd, parent,0);
+				}
+			}
+		}
+		<%} else {%>
+		/// <summary>
+        /// 该函数在父对象的子对象集合被访问时调用，用于获取该父对象的所有子对象
+        /// </summary>
+        /// <param name="fieldName">外键字段</param>
+        /// <param name="parent">父对象</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> InvokeByParentEntity(string fieldName,object parent)
+		{
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+					return InvokeByParent(cmd, fieldName,parent,0);
+				}
+			}
+		}
+		<%}%>
+		
+		<%--如果表存在外键，则生成供父对象调用获取该父对象所有子对象集合的函数--%>
+		<%if(SourceTable.ForeignKeys.Count==1) {%>
+		/// <summary>
+        /// 该函数由父对象调用，用于获取该父对象的所有子对象
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="parent">父对象</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> InvokeByParent(SqlCommand cmd, <%=GetPasicString(SourceTable.ForeignKeys[0].PrimaryKeyTable.Name)%> parent,int recursiveDepth)
+        <%} else {%>
+		/// <summary>
+        /// 该函数由父对象调用，用于获取该父对象的所有子对象
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="fieldName">外键字段</param>
+        /// <param name="parent">父对象</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> InvokeByParent(SqlCommand cmd, string fieldName,object parent,int recursiveDepth)
+		<%}%>
+		{
+            <%= collectionString %> <%=GetCamelString(SourceTable.Name) %>List = new <%= collectionString %>();
+            <%--表只有一个外键--%>
+			<%if(SourceTable.ForeignKeys.Count==1) {%>
+			cmd.Parameters.Clear();
+			<%if(IsValueType(SourceTable.ForeignKeys[0].PrimaryKeyMemberColumns[0].DataType)){%>
+            if (parent.<%=GetPasicString(SourceTable.ForeignKeys[0].PrimaryKeyMemberColumns[0].Name)%>.HasValue)
+			<%} else {%>
+			if(parent.<%=GetPasicString(SourceTable.ForeignKeys[0].PrimaryKeyMemberColumns[0].Name)%>!=null)
+			<%}%>
+            {
+                cmd.CommandText = "select * from <%=SourceTable.Name%> where <%=SourceTable.ForeignKeys[0].ForeignKeyMemberColumns[0].Name%>=@paraValue";
+                cmd.Parameters.Add(new SqlParameter("@paraValue", parent.<%=GetPasicString(SourceTable.ForeignKeys[0].PrimaryKeyMemberColumns[0].Name)%>));
+            }
+            else
+            {
+                cmd.CommandText = "select * from <%=SourceTable.Name%> where <%=SourceTable.ForeignKeys[0].ForeignKeyMemberColumns[0].Name%> is null";
+            }
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    <%=GetPasicString(SourceTable.Name) %> <%=GetCamelString(SourceTable.Name) %> = DataReaderToEntity(dr);
+                    <%=GetCamelString(SourceTable.Name) %>List.Add(<%=GetCamelString(SourceTable.Name) %>);
+                }
+            }
+            foreach (<%=GetPasicString(SourceTable.Name) %> <%=GetCamelString(SourceTable.Name) %> in <%=GetCamelString(SourceTable.Name) %>List)
+            {
+				<% if(!XmlSerialization){%>    <%--如果要时行Xml序列化，不添加对父对象的引用--%>
+                <%=GetCamelString(SourceTable.Name) %>.<%= GetPasicString(GetForeignKeyEntityName(SourceTable.ForeignKeys[0].ForeignKeyMemberColumns[0].Name)) %>=parent;
+                <%}%>
+				<%if(PrimaryKeyReferred()){%>
+				if (recursiveDepth != 0)
+                {
+				    <% System.Collections.Generic.Dictionary<string,int> counts=new System.Collections.Generic.Dictionary<string,int>();
+						foreach(TableKeySchema tableKey in SourceTable.Keys) {
+					if(tableKey.PrimaryKey.Table==SourceTable) 
+					{
+						if(counts.ContainsKey(tableKey.ForeignKeyTable.Name)) 
+							counts[tableKey.ForeignKeyTable.Name]++; 
+						else 
+			    			counts.Add(tableKey.ForeignKeyTable.Name, 1);
+					    if(tableKey.ForeignKeyTable.ForeignKeys.Count==1){%>
+				    
+					<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, <%=GetCamelString(SourceTable.Name) %>, recursiveDepth-1);
+					    <%} else {%>
+					<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, "<%=tableKey.ForeignKeyMemberColumns[0].Name %>",<%=GetCamelString(SourceTable.Name) %>, recursiveDepth-1);
+					<%}}}%>
+                }
+				<%}%>
+            }
+			<%--表有多个外键--%>
+			<%} else { foreach(TableKeySchema foreignKey in SourceTable.ForeignKeys) {%>
+			cmd.Parameters.Clear();
+			if (fieldName.Equals("<%=foreignKey.ForeignKeyMemberColumns[0].Name%>",StringComparison.CurrentCultureIgnoreCase))
+            {
+                <%=GetPasicString(foreignKey.PrimaryKeyTable.Name)%> <%=GetCamelString(foreignKey.PrimaryKeyTable.Name)%> = parent as <%=GetPasicString(foreignKey.PrimaryKeyTable.Name)%>;
+                <%if(IsValueType(foreignKey.ForeignKeyMemberColumns[0].DataType)){%>
+				if (<%=GetCamelString(foreignKey.PrimaryKeyTable.Name)%>.<%=GetPasicString(foreignKey.PrimaryKeyMemberColumns[0].Name)%>.HasValue)
+				<%} else {%>
+				if(<%=GetCamelString(foreignKey.PrimaryKeyTable.Name)%>.<%=GetPasicString(foreignKey.PrimaryKeyMemberColumns[0].Name)%>!=null)
+				<%}%>
+				{
+					cmd.CommandText = "select * from <%=SourceTable.Name%> where <%=foreignKey.ForeignKeyMemberColumns[0].Name%>=@paraValue";
+					cmd.Parameters.Add(new SqlParameter("@paraValue", <%=GetCamelString(foreignKey.PrimaryKeyTable.Name)%>.<%=GetPasicString(foreignKey.PrimaryKeyMemberColumns[0].Name)%>));
+				}
+				else
+				{
+					cmd.CommandText = "select * from <%=SourceTable.Name%> where <%=foreignKey.ForeignKeyMemberColumns[0].Name%> is null";
+				}
+				using (SqlDataReader dr = cmd.ExecuteReader())
+				{
+					while (dr.Read())
+					{
+						<%=GetPasicString(SourceTable.Name) %> child<%=GetPasicString(SourceTable.Name) %> = DataReaderToEntity(dr);
+						<%=GetCamelString(SourceTable.Name) %>List.Add(child<%=GetPasicString(SourceTable.Name) %>);
+					}
+				}
+				foreach (<%=GetPasicString(SourceTable.Name) %> child<%=GetPasicString(SourceTable.Name) %> in <%=GetCamelString(SourceTable.Name) %>List)
+				{	<%--如果要时行Xml序列化，不添加对父对象的引用--%>
+			    	<% if(!XmlSerialization){%>
+					child<%=GetPasicString(SourceTable.Name) %>.<%= GetPasicString(GetForeignKeyEntityName(foreignKey.ForeignKeyMemberColumns[0].Name)) %>=<%=GetCamelString(foreignKey.PrimaryKeyTable.Name)%>;
+					<%}%>
+					<%foreach(TableKeySchema fk in SourceTable.ForeignKeys) { if(fk!=foreignKey){%>
+					//其它外键实体
+					child<%=GetPasicString(SourceTable.Name) %>.<%= GetPasicString(GetForeignKeyEntityName(fk.ForeignKeyMemberColumns[0].Name)) %> = D<%= GetPasicString(fk.PrimaryKeyTable.Name) %>.SelectSingle(cmd,child<%=GetPasicString(SourceTable.Name) %>.<%= GetPasicString(fk.ForeignKeyMemberColumns[0].Name) %>,RecursiveType.Parent,0);
+					<%}}%>
+					<%if(PrimaryKeyReferred()){%>
+					if (recursiveDepth != 0)
+					{
+						<% System.Collections.Generic.Dictionary<string,int> counts=new System.Collections.Generic.Dictionary<string,int>();
+							foreach(TableKeySchema tableKey in SourceTable.Keys) {
+						if(tableKey.PrimaryKey.Table==SourceTable) 
+						{
+							if(counts.ContainsKey(tableKey.ForeignKeyTable.Name)) 
+								counts[tableKey.ForeignKeyTable.Name]++; 
+							else 
+								counts.Add(tableKey.ForeignKeyTable.Name, 1);
+							if(tableKey.ForeignKeyTable.ForeignKeys.Count==1){%>
+						
+						child<%=GetPasicString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, child<%=GetPasicString(SourceTable.Name) %>, recursiveDepth-1);
+							<%} else {%>
+						child<%=GetPasicString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, "<%=tableKey.ForeignKeyMemberColumns[0].Name %>",child<%=GetPasicString(SourceTable.Name) %>, recursiveDepth-1);
+						<%}}}%>
+					}
+					<%}%>
+				}
+            }
+			<%}}%>
+			return <%=GetCamelString(SourceTable.Name) %>List;
+        }
+		<%}%>
+		/// <summary>
+        /// 执行查询命令
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象集合</returns>
+        internal static <%= collectionString %> ExcuteSelectCommand(SqlCommand cmd, string oql, ParameterList parameters,RecursiveType recursiveType,int recursiveDepth)
+        {
+            //解析过滤部份Sql语句
+            string filterString = SyntaxAnalyzer.ParseSql(oql, new <%= GetPasicString(SourceTable.Name)%>Map());
+            if (filterString != string.Empty)
+            {
+				if(filterString.Trim().ToLower().IndexOf("order ")!=0)
+                	filterString = " where " + filterString;
+            }
+            cmd.Parameters.Clear();
+            cmd.CommandText = "select * from <%= SourceTable.Name%> " + filterString;
+            //添加参数
+            if (parameters != null)
+            {
+                foreach (string key in parameters.Keys)
+                {
+                    cmd.Parameters.Add(new SqlParameter(key, parameters[key]));
+                }
+            }
+            return ExcuteSelectCommand(cmd, recursiveType, recursiveDepth);
+        }
+		
+		/// <summary>
+        /// 根据对象查询语句查询实体集合
+        /// </summary>
+        /// <returns>实体类对象集合</returns>
+        internal static <%= collectionString %> Select()
+        {
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "select * from <%= SourceTable.Name %>";
+                    return ExcuteSelectCommand(cmd, RecursiveType.Parent, 1);
+                }
+            }
+        }
+		/// <summary>
+        /// 根据对象查询语句查询实体集合
+        /// </summary>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象集合</returns>
+        internal static <%= collectionString %> Select(RecursiveType recursiveType, int recursiveDepth)
+        {
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "select * from <%= SourceTable.Name %>";
+                    return ExcuteSelectCommand(cmd, recursiveType, recursiveDepth);
+                }
+            }
+        }
+		
+		/// <summary>
+        /// 根据对象查询语句查询实体集合
+        /// </summary>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>实体类对象集合</returns>
+        internal static <%= collectionString %> Select(string oql, ParameterList parameters)
+        {
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return ExcuteSelectCommand(cmd, oql, parameters, RecursiveType.Parent, 1);
+                }
+            }
+        }
+		
+		/// <summary>
+        /// 根据对象查询语句查询实体集合
+        /// </summary>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象集合</returns>
+        internal static <%= collectionString %> Select(string oql, ParameterList parameters,RecursiveType recursiveType, int recursiveDepth)
+        {
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return ExcuteSelectCommand(cmd, oql, parameters, recursiveType, recursiveDepth);
+                }
+            }
+        }
+		
+		/// <summary>
+        /// 根据对象查询语句查询实体集合（启用事务）
+        /// </summary>
+        /// <param name="connection">连接对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象集合</returns>
+        internal static <%= collectionString %> Select(Connection connection, string oql, ParameterList parameters, RecursiveType recursiveType, int recursiveDepth)
+        {
+            return ExcuteSelectCommand(connection.Command, oql, parameters,recursiveType, recursiveDepth);
+        }
+		#endregion
+		
+		#region 查询单个实体
+		
+		/// <summary>
+        /// 递归查询单个实体
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体对象</returns>
+		internal static <%= GetPasicString(SourceTable.Name) %> ExcuteSelectSingleCommand(SqlCommand cmd,RecursiveType recursiveType,int recursiveDepth)
+		{
+			<%= GetPasicString(SourceTable.Name) %> <%= GetCamelString(SourceTable.Name) %>=null;
+			using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+			    if(dr.Read())
+				    <%= GetCamelString(SourceTable.Name) %> = DataReaderToEntity(dr);
+			}
+			if(<%= GetCamelString(SourceTable.Name) %>==null)
+			    return <%= GetCamelString(SourceTable.Name) %>;
+			<%if(SourceTable.ForeignKeys.Count>0){%>
+			//由外键获取相关实体
+			if(recursiveType==RecursiveType.Parent && recursiveDepth!=0)
+			{
+	        <% foreach(TableKeySchema tableKey in SourceTable.ForeignKeys) { %>
+	        	<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(GetForeignKeyEntityName(tableKey.ForeignKeyMemberColumns[0].Name)) %> = D<%= GetPasicString(tableKey.PrimaryKeyTable.Name) %>.SelectSingle(cmd,<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyMemberColumns[0].Name) %>,recursiveType,recursiveDepth-1);
+	        <% } %>
+			}
+			<% } %>
+			<%if(PrimaryKeyReferred()){%>
+			//由外键获取相关实体
+			if(recursiveType==RecursiveType.Child && recursiveDepth!=0)
+			{
+			 	<% System.Collections.Generic.Dictionary<string,int> counts=new System.Collections.Generic.Dictionary<string,int>();
+				foreach(TableKeySchema tableKey in SourceTable.Keys) {
+				if(tableKey.PrimaryKey.Table==SourceTable) 
+				{
+				if(counts.ContainsKey(tableKey.ForeignKeyTable.Name)) 
+					counts[tableKey.ForeignKeyTable.Name]++; 
+				else 
+			    	counts.Add(tableKey.ForeignKeyTable.Name, 1);
+				if(tableKey.ForeignKeyTable.ForeignKeys.Count==1){%>
+				<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, <%=GetCamelString(SourceTable.Name) %>, recursiveDepth-1);
+				<%} else {%>
+				<%= GetCamelString(SourceTable.Name) %>.<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>=D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParent(cmd, "<%=tableKey.ForeignKeyMemberColumns[0].Name %>",<%=GetCamelString(SourceTable.Name) %>, recursiveDepth-1);
+				<%}}}%>
+			}
+			<% }%>
+            return <%= GetCamelString(SourceTable.Name) %>;
+		}
+		/// <summary>
+        /// 更据对象查询语句递归查询单个实体
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> ExcuteSelectSingleCommand(SqlCommand cmd, string oql, ParameterList parameters,RecursiveType recursiveType,int recursiveDepth)
+        {
+            //解析过滤部份Sql语句
+            string filterString = SyntaxAnalyzer.ParseSql(oql, new <%= GetPasicString(SourceTable.Name)%>Map());
+			if(filterString!=string.Empty)
+			{
+			    filterString=" where "+filterString;
+			}
+            cmd.CommandText = "select * from <%= SourceTable.Name%> " + filterString;
+			cmd.Parameters.Clear();
+            //添加参数
+            if (parameters != null)
+            {
+                foreach (string key in parameters.Keys)
+                {
+                    cmd.Parameters.Add(new SqlParameter(key, parameters[key]));
+                }
+            }
+            return ExcuteSelectSingleCommand(cmd, recursiveType, recursiveDepth);
+        }
+				
+		/// <summary>
+        /// 更据对象查询语句递归查询单个实体
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> SelectSingle(string oql, ParameterList parameters, RecursiveType recursiveType, int recursiveDepth)
+        {
+            using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return ExcuteSelectSingleCommand(cmd, oql, parameters, recursiveType, recursiveDepth);
+                }   
+            } 
+        }
+		
+		/// <summary>
+        /// 更据对象查询语句查询单个实体
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>实体对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> SelectSingle(string oql, ParameterList parameters)
+        {
+            return SelectSingle(oql,parameters,RecursiveType.Parent,1);
+        }
+		
+		/// <summary>
+        /// 更据对象查询语句并启用事务查询单个实体
+        /// </summary>
+        /// <param name="connection">连接对象</param>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>实体对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> SelectSingle(Connection connection, string oql, ParameterList parameters, RecursiveType recursiveType, int recursiveDepth)
+        {
+            return ExcuteSelectSingleCommand(connection.Command, oql, parameters, recursiveType, recursiveDepth);
+        }
+		
+		<% if(ExistPK()) {%>
+		/// <summary>
+        /// 更据主键值递归查询单个实体
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <param name="<%=GetCamelString(GetPrimaryKeyColumn().Name)%>">主键值</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> SelectSingle(SqlCommand cmd, <%=GetDataTypeString(GetPrimaryKeyColumn().DataType)+" "+GetCamelString(GetPrimaryKeyColumn().Name)%>,RecursiveType recursiveType,int recursiveDepth)
+		{
+		    cmd.Parameters.Clear();
+			<% if(IsValueType(GetPrimaryKeyColumn().DataType)) { %>
+			if(<%=GetCamelString(GetPrimaryKeyColumn().Name)%>.HasValue)
+			{
+		    	cmd.CommandText = "select * from <%= SourceTable.Name %> where <%= GetPrimaryKeyColumn().Name %>=@pk";
+				cmd.Parameters.Add(new SqlParameter("@pk",<%=GetCamelString(GetPrimaryKeyColumn().Name)%>.Value));
+			}
+			else
+			{
+			    cmd.CommandText = "select * from <%= SourceTable.Name %> where <%= GetPrimaryKeyColumn().Name %> is null";
+			}
+			<%}else{%>
+			if(<%=GetCamelString(GetPrimaryKeyColumn().Name)%>==null)
+			{
+		    	cmd.CommandText = "select * from <%= SourceTable.Name %> where <%= GetPrimaryKeyColumn().Name %> is null";
+			}
+			else
+			{
+			    cmd.CommandText = "select * from <%= SourceTable.Name %> where <%= GetPrimaryKeyColumn().Name %>=@pk";
+				cmd.Parameters.Add(new SqlParameter("@pk",<%=GetCamelString(GetPrimaryKeyColumn().Name)%>));
+			}
+			<%}%>
+			return ExcuteSelectSingleCommand(cmd, recursiveType, recursiveDepth);
+		}
+		
+		/// <summary>
+        /// 按主键字段查询特定实体
+        /// </summary>
+        /// <param name="<%=GetCamelString(GetPrimaryKeyColumn().Name)%>">主键值</param>
+        /// <returns>实体类对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> SelectSingle(<%=GetDataTypeString(GetPrimaryKeyColumn().DataType)+" "+GetCamelString(GetPrimaryKeyColumn().Name)%>)
+        {
+            using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return SelectSingle(cmd,<%=GetCamelString(GetPrimaryKeyColumn().Name)%>,RecursiveType.Parent,1);
+                }   
+            } 
+        }
+		/// <summary>
+        /// 按主键字段查询特定实体
+        /// </summary>
+        /// <param name="<%=GetCamelString(GetPrimaryKeyColumn().Name)%>">主键值</param>
+		/// <param name="recursiveType">递归类型</param>
+        /// <param name="recursiveDepth">递归深度</param>
+        /// <returns>实体类对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> SelectSingle(<%=GetDataTypeString(GetPrimaryKeyColumn().DataType)+" "+GetCamelString(GetPrimaryKeyColumn().Name)%>, RecursiveType recursiveType, int recursiveDepth)
+        {
+            using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    return SelectSingle(cmd,<%=GetCamelString(GetPrimaryKeyColumn().Name)%>, recursiveType, recursiveDepth);
+                }   
+            } 
+        }
+		
+		/// <summary>
+        /// 使用事务并按主键字段查询特定实体
+        /// </summary>
+		/// <param name="connection">连接对象</param>
+        /// <param name="<%=GetCamelString(GetPrimaryKeyColumn().Name)%>">主键值</param>
+        /// <returns>实体类对象</returns>
+        internal static <%= GetPasicString(SourceTable.Name) %> SelectSingle(Connection connection,<%=GetDataTypeString(GetPrimaryKeyColumn().DataType)+" "+GetCamelString(GetPrimaryKeyColumn().Name)%>, RecursiveType recursiveType, int recursiveDepth)
+        {
+			return SelectSingle(connection.Command, <%=GetCamelString(GetPrimaryKeyColumn().Name)%>, recursiveType, recursiveDepth);
+        }
+		<%}%>
+		#endregion
+		
+				
+		/// <summary>
+        /// 从DataReader中取出值生成实体对象
+        /// </summary>
+        /// <param name="searcher">查询对象</param>
+        /// <returns>过滤条件字符串</returns>
+		private static <%= GetPasicString(SourceTable.Name) %> DataReaderToEntity(SqlDataReader dr)
+		{
+		    <%= GetPasicString(SourceTable.Name)+" entity = new "+GetPasicString(SourceTable.Name) %> ();
+            <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+			if(dr["<%=SourceTable.Columns[i].Name%>"]!=System.DBNull.Value)
+			{
+			    <%= SetEntityValueString(SourceTable.Columns[i]) %>;
+			}
+			<% } %>
+			return entity;
+		}
+	}
+}
+
+<script runat="template">
+private string collectionString="";
+public string GetDataTypeString(DbType dbType)
+{
+	switch(dbType)
+	{
+		case DbType.Boolean: return "bool?";
+	    case DbType.Byte:return "byte?";
+		case DbType.SByte: return "sbyt?";
+		case DbType.Int16:return "short?";
+		case DbType.Int32:return "int?";
+		case DbType.Int64:return "long?";
+		case DbType.DateTime:case DbType.Date:return "DateTime?";
+		case DbType.Single:return "float?";
+		case DbType.Double:return "double?";
+		case DbType.UInt16: return "ushort?";
+		case DbType.UInt32: return "uint?";
+		case DbType.UInt64: return "ulong?";
+		case DbType.Currency:case DbType.Decimal:case DbType.VarNumeric:return "Decimal?";
+		case DbType.Object: return "object";
+		case DbType.Binary:return "byte[]";
+		case DbType.Time: return "TimeSpan";
+		default:return "string";
+	}
+}
+public string SetEntityValueString(ColumnSchema column)
+{
+	string str="entity."+GetPasicString(column.Name)+"=";
+	switch(column.DataType)
+	{
+		case DbType.DateTime:case DbType.Date:
+		    str+="Convert.ToDateTime(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Byte:
+		    str+="Convert.ToByte(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Int16:
+		    str+="Convert.ToInt16(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Int32:
+		    str+="Convert.ToInt32(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Int64:
+		    str+="Convert.ToInt64(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Single:
+		    str+="Convert.ToSingle(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Double:
+		    str+="Convert.ToDouble(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Currency:case DbType.Decimal:case DbType.VarNumeric:
+		    str+="Convert.ToDecimal(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Boolean:
+	        str+="Convert.ToBoolean(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Binary:
+			str+="(byte[])dr[\""+column.Name+"\"]";
+			break;
+		default:
+		    str+="dr[\""+column.Name+"\"].ToString()";
+			break;
+	}
+	return str;
+}
+//获取外键实体名规则的字符串
+public string GetForeignKeyEntityName(string columnName)
+{
+	if(columnName.Substring(columnName.Length-3).ToLower()=="_id")
+	{
+		return columnName.Substring(0,columnName.Length-3)+"Ref";
+	}
+	if(columnName.Substring(columnName.Length-2).ToLower()=="id")
+	{
+		return columnName.Substring(0,columnName.Length-2)+"Ref";
+	}
+	return columnName+"Ref";
+}
+//获取插入SQL语句
+public string GetInsertSql()
+{
+	string fieldsString="";
+	string valuesString="";
+	foreach(ColumnSchema column in SourceTable.Columns)
+	{
+		//如果该字段不是标识列，加入到插入的Sql语句中
+		if(!Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value))
+		{
+			fieldsString+=","+column.Name;
+			valuesString+=",@"+column.Name;
+		}
+	}
+	return "insert into "+SourceTable.Name+" ("+fieldsString.Substring(1)+") values ("+valuesString.Substring(1)+")";
+}
+public bool IsValueType(DbType dbType)
+{
+	return (dbType==DbType.Int16 || dbType==DbType.Int32 || dbType==DbType.Int64 || 
+	dbType==DbType.UInt16 || dbType==DbType.UInt32 || dbType==DbType.UInt64 || 
+	dbType==DbType.Byte || dbType==DbType.SByte || dbType==DbType.Date || dbType==DbType.DateTime ||
+	dbType==DbType.Single || dbType==DbType.Double || dbType==DbType.Boolean || 
+	dbType==DbType.Decimal || dbType==DbType.Currency || dbType==DbType.VarNumeric);	
+}
+//由列获取插入参数的字符串
+public string GetAddParameterString(ColumnSchema column)
+{
+	string paraName="@"+column.Name;
+	string propertyName=GetCamelString(SourceTable.Name)+"."+GetPasicString(column.Name);
+	if(IsValueType(column.DataType))
+	{
+		return "cmd.Parameters.Add(new SqlParameter(\""+paraName+"\","+propertyName+".HasValue?(object)"+propertyName+".Value:(object)DBNull.Value));";
+	}
+	else
+	{
+		return "cmd.Parameters.Add(new SqlParameter(\""+paraName+"\","+propertyName+"==null?(object)DBNull.Value:(object)"+propertyName+"));";
+	}
+}
+
+//获取更新SQL语句
+public string GetUpdateSql()
+{
+	string sql="";
+	foreach(ColumnSchema column in SourceTable.Columns)
+	{
+		if(!Convert.ToBoolean(column.ExtendedProperties["CS_IsIdentity"].Value))
+		{
+			sql+=","+column.Name+"="+"@"+column.Name;
+		}
+	}
+	return "update "+SourceTable.Name+" set "+sql.Substring(1)+" where "+this.GetPrimaryKeyColumn().Name+"=@"+this.GetPrimaryKeyColumn().Name;
+}
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_',' ');
+	foreach(string str in strList)
+	{
+		if(str!=string.Empty)
+			pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+//获取Camel规则的字符串
+public string GetCamelString(string var)
+{
+	string[] strList=var.Split('_');
+	string camelString=strList[0].Substring(0,1).ToLower()+strList[0].Substring(1);
+	for(int i=1; i<strList.Length; i++)
+	{
+		string str=strList[i];
+		camelString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	if(camelString=="class")
+	    camelString="cls";
+	return camelString;
+}
+public bool PrimaryKeyReferred()
+{
+	foreach(TableKeySchema tableKey in SourceTable.Keys) 
+	{
+		if(tableKey.PrimaryKey.Table==SourceTable)
+		    return true;
+	}
+	return false;
+}
+//判断是否存在主键
+public bool ExistPK()
+{
+	foreach(ColumnSchema column in SourceTable.Columns)
+	{
+		if(column.IsPrimaryKeyMember)
+		  return true;
+	}
+	return false;
+}
+
+//获取主键字段名
+public ColumnSchema GetPrimaryKeyColumn()
+{
+	foreach(ColumnSchema column in SourceTable.Columns)
+	{
+		if(column.IsPrimaryKeyMember)
+		  return column;
+	}
+	return null;
+}
+</script>

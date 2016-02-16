@@ -1,0 +1,248 @@
+﻿<%-- 
+Name:操作类模板
+Author: 黄小云
+Description: 生成实体类的操作类。
+--%>
+<%@ CodeTemplate Language="C#" Debuge="True" Inherits="" ResponseEncoding="UTF-8" TargetLanguage="cs" Src="" Debug="False" Description="Template description here." %>
+<%@ Property Name="ConnectionString" Type="System.String" Default="ConnectionString" Optional="True" Category="Strings" Description="数据库连接串在配置文件中的的name" %>
+<%@ Property Name="SourceView" Type="SchemaExplorer.ViewSchema" Category="Context" Description="生成操作类的源视图" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Property Name="TemporaryView" Type="System.Boolean" Default="False" Optional="False" Category="Booleans" Description="是否是临时视图，如果是临时视图，生成后可以从数据库中删除，不影响程序的运行" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Text.RegularExpressions" %>
+<% collectionString="List<"+GetPasicString(SourceView.Name)+">"; %>
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Collections;
+using <%=NameSpacePrefix%>Model;
+using <%=NameSpacePrefix%>ObjectQuery;
+using System.Collections.Generic;
+
+namespace <%=NameSpacePrefix%>DAL
+{
+    internal partial class D<%= GetPasicString(SourceView.Name) %>
+	{
+	    #region 查询实体集合
+		/// <summary>
+        /// 执行Command获取对象列表
+        /// </summary>
+        /// <param name="cmd">Command对象</param>
+        /// <returns>实体类对象列表</returns>
+        private static <%= collectionString %> ExcuteSelectCommand(SqlCommand cmd)
+        {
+            <%= collectionString %> entities = new <%= collectionString %>();
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    <%= GetPasicString(SourceView.Name) %>  entity = DataReaderToEntity(dr);
+                    entities.Add(entity);
+                }
+            }
+			return entities;
+        }
+        /// <summary>
+        /// 查询所有实体
+        /// </summary>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> Select()
+        {
+            using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "select * from <%= GetViewName() %>";
+                    return ExcuteSelectCommand(cmd);
+                }
+            }
+        }
+		/// <summary>
+        /// 使用事务查询查询所有实体
+        /// </summary>
+		/// <param name="connection">实现共享Command的对象</param>
+        /// <param name="searcher">查询对象</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> Select(Connection connection)
+        {
+            <%= collectionString %> entities = new <%= collectionString %>();
+            SqlCommand cmd=connection.Command as SqlCommand;
+			cmd.Parameters.Clear();
+            cmd.CommandText = "select * from <%= GetViewName() %>";
+            return ExcuteSelectCommand(cmd);
+        }
+		
+		/// <summary>
+        /// 查询所有实体
+        /// </summary>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> Select(string oql, ParameterList parameters)
+        {
+            //解析过滤部份Sql语句
+            string filterString = SyntaxAnalyzer.ParseSql(oql, new <%= GetPasicString(SourceView.Name)%>Map());
+            if (filterString != string.Empty)
+            {
+                filterString = " where " + filterString;
+            }
+			using(SqlConnection conn=new SqlConnection(Connection.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+					cmd.Parameters.Clear();
+					cmd.CommandText = "select * from <%= GetViewName()%> " + filterString;
+					//添加参数
+					if (parameters != null)
+					{
+						foreach (string key in parameters.Keys)
+						{
+							cmd.Parameters.Add(new SqlParameter(key, parameters[key]));
+						}
+					}
+                    return ExcuteSelectCommand(cmd);
+                }
+            }
+        }
+		/// <summary>
+        /// 使用事务查询查询所有实体
+        /// </summary>
+		/// <param name="connection">实现共享Command的对象</param>
+        /// <param name="searcher">查询对象</param>
+        /// <returns>实体类对象列表</returns>
+        internal static <%= collectionString %> Select(Connection connection, string oql, ParameterList parameters)
+        {
+            //解析过滤部份Sql语句
+            string filterString = SyntaxAnalyzer.ParseSql(oql, new <%= GetPasicString(SourceView.Name)%>Map());
+            if (filterString != string.Empty)
+            {
+                filterString = " where " + filterString;
+            }
+			connection.Command.Parameters.Clear();
+			connection.Command.CommandText = "select * from <%= GetViewName()%> " + filterString;
+			//添加参数
+			if (parameters != null)
+			{
+				foreach (string key in parameters.Keys)
+				{
+					connection.Command.Parameters.Add(new SqlParameter(key, parameters[key]));
+				}
+			}
+            return ExcuteSelectCommand(connection.Command);
+        }
+		#endregion
+		
+				
+		/// <summary>
+        /// 从DataReader中取出值生成实体对象
+        /// </summary>
+        /// <param name="searcher">查询对象</param>
+        /// <returns>过滤条件字符串</returns>
+		private static <%= GetPasicString(SourceView.Name) %> DataReaderToEntity(SqlDataReader dr)
+		{
+		    <%= GetPasicString(SourceView.Name)+" entity = new "+GetPasicString(SourceView.Name) %> ();
+            <% for (int i = 0; i < SourceView.Columns.Count; i++) { %>
+			if(dr["<%=SourceView.Columns[i].Name%>"]!=System.DBNull.Value)
+			{
+			    <%= SetEntityValueString(SourceView.Columns[i]) %>;
+			}
+			<% } %>
+			return entity;
+		}
+	}
+}
+
+<script runat="template">
+private string collectionString="";
+private string GetViewName()
+{
+	if(TemporaryView)
+	{
+		Regex r = new Regex("\\bas\\b", RegexOptions.IgnoreCase);
+		Match m = r.Match(SourceView.ViewText);
+		int index = m.Index;
+		r = new Regex("\\bs", RegexOptions.IgnoreCase);
+		m = r.Match(SourceView.ViewText, index);
+		return "("+SourceView.ViewText.Substring(m.Index).Replace("\r\n"," ").Replace("\r"," ").Replace("\n"," ")+") "+SourceView.Name;
+	}
+	else
+	    return SourceView.Name;
+}
+
+public string SetEntityValueString(ViewColumnSchema column)
+{
+	string str="entity."+GetPasicString(column.Name)+"=";
+	switch(column.DataType)
+	{
+		case DbType.DateTime:
+		    str+="Convert.ToDateTime(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Byte:
+		    str+="Convert.ToByte(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Int16:
+		    str+="Convert.ToInt16(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Int32:
+		    str+="Convert.ToInt32(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Int64:
+		    str+="Convert.ToInt64(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Single:
+		    str+="Convert.ToSingle(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Double:
+		    str+="Convert.ToDouble(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Currency:
+		case DbType.Decimal:
+		    str+="Convert.ToDecimal(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Boolean:
+	        str+="Convert.ToBoolean(dr[\""+column.Name+"\"])";
+			break;
+		case DbType.Binary:
+			str+="(byte[])dr[\""+column.Name+"\"]";
+			break;
+		default:
+		    str+="dr[\""+column.Name+"\"].ToString()";
+			break;
+	}
+	return str;
+}
+
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_');
+	foreach(string str in strList)
+	{
+		pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+//获取Camel规则的字符串
+public string GetCamelString(string var)
+{
+	
+	string[] strList=var.Split('_');
+	string camelString=strList[0].Substring(0,1).ToLower()+strList[0].Substring(1);
+	for(int i=1; i<strList.Length; i++)
+	{
+		string str=strList[i];
+		camelString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	if(camelString=="class")
+	    camelString="cls";
+	return camelString;
+}
+
+</script>

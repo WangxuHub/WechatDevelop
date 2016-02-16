@@ -1,8 +1,18 @@
-﻿using System;
+﻿<%-- 
+Name:事务类模板
+Author: 黄小云
+Description: 生成进行跨事务操作的类
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="cs" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Property Name="ConnectionString" Type="System.String" Default="ConnectionString" Optional="True" Category="Strings" Description="数据库连接串在配置文件中的的name" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+using System;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace DBHelper.DAL
+namespace <%=NameSpacePrefix%>DAL
 {
     internal partial class Connection : IDisposable
     {
@@ -16,7 +26,7 @@ namespace DBHelper.DAL
             {
                 if (connectionString == null)
                 {
-                    connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
+                    connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["<%= ConnectionString %>"].ConnectionString;
                 }
                 return connectionString;
             }

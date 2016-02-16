@@ -1,0 +1,689 @@
+﻿<%-- 
+Name:三层架构父模板
+Author: 黄小云
+Description: 在此模板中调用所有的子模板，并且将子模板中的输出内容写入指定目录的文件中。
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="数据" Description="生成三层架构的数据库" %>
+<%@ Property Name="ConnectionString" Type="System.String" Default="ConnectionString" Optional="True" Category="数据" Description="数据库连接串在配置文件中的的name" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="命名空间" Description="命名空间前缀" %>
+<%@ Property Name="TemporaryView" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否是临时视图，如果是临时视图，生成后可以从数据库中删除，不影响程序的运行" %>
+<%@ Property Name="XmlSerialization" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否要进行XML序列化，如果要进行XML序列化，不能循环引用，所以查询子对象的集合时集合中的所有子对象会损失对父对象的引用" %>
+<%@ Property Name="LazyLoad" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否使用延迟加载方式，如果使用，即使在第一次查询时没有填充子对象集合，在读取子对象集合属性时也会去获取该集合的值。如果使用XML序列化，延迟加载会被禁用" %>
+<%@ Property Name="FilterString" Type="System.String" Default="^" Optional="True" Category="表或视图名过滤" Description="通过正则表达式对表名或视图名进行过滤，符合条件的才生成三层架构" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.IO" %>
+
+<%--如果目录不存在，创建目录--%>
+<% if(!Directory.Exists(OutputDirectory)) Directory.CreateDirectory(OutputDirectory); %>
+<% if(!Directory.Exists(OutputDirectory+"\\DAL")) Directory.CreateDirectory(OutputDirectory+"\\DAL"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\DAL\\AutoGenerate")) Directory.CreateDirectory(OutputDirectory+"\\DAL\\AutoGenerate"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\DAL\\Extension")) Directory.CreateDirectory(OutputDirectory+"\\DAL\\Extension"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\BLL")) Directory.CreateDirectory(OutputDirectory+"\\BLL"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\BLL\\AutoGenerate")) Directory.CreateDirectory(OutputDirectory+"\\BLL\\AutoGenerate"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\BLL\\Extension")) Directory.CreateDirectory(OutputDirectory+"\\BLL\\Extension"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\Model")) Directory.CreateDirectory(OutputDirectory+"\\Model"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\Model\\AutoGenerate")) Directory.CreateDirectory(OutputDirectory+"\\Model\\AutoGenerate"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\Model\\Extension")) Directory.CreateDirectory(OutputDirectory+"\\Model\\Extension"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\ObjectQuery")) Directory.CreateDirectory(OutputDirectory+"\\ObjectQuery"); %>
+<%
+//生成表相关类
+foreach (TableSchema table in SourceDatabase.Tables)
+{
+	if(IsMatch(table.Name))
+	{
+		OutputEntityTemplate(table);
+		OutputOperatorTemplate(table);
+		OutputTableDALExtension(table);
+		OutputPropertyMapTemplate(table);
+		OutputTableBLLTemplate(table);
+		OutputTableBLLExtension(table);
+		OutputTableModelExtension(table);
+		Response.Write("\r\n");
+	}
+}
+//生成视图的相关类
+foreach (ViewSchema view in SourceDatabase.Views)
+{
+	if(IsMatch(view.Name))
+	{
+		OutputViewModelTemplate(view);
+		OutputViewModelExtension(view);
+		OutputViewOperatorTemplate(view);
+		OutputViewDALExtension(view);
+		OutputViewPropertyMapTemplate(view);
+		OutputViewBLLTemplate(view);
+		OutputViewBLLExtension(view);
+		Response.Write("\r\n");
+	}
+}
+//生成连接类
+OutputConnectionTemplate();
+OutputEntityMapTemplate();
+OutputSyntaxAnalyzerTemplate();
+OutputParameterListTemplate();
+
+//拷贝说明文件到项目目录
+File.Copy(this.CodeTemplateInfo.DirectoryName+"CodeSmith模板生成三层架构的代码使用说明.doc",OutputDirectory+"\\CodeSmith模板生成三层架构的代码使用说明.doc",true);
+%> 
+<script runat="template">
+private CodeTemplate entityTemplate; 
+private CodeTemplate operatorTemplate;
+private CodeTemplate propertyMapTemplate;
+
+private CodeTemplate viewEntityTemplate;
+private CodeTemplate viewOperatorTemplate;
+private CodeTemplate viewPropertyMapTemplate;
+
+private CodeTemplate tableBLTemplate;
+private CodeTemplate viewBLTemplate;
+
+private CodeTemplate connectionTemplate;
+private CodeTemplate entityMapTemplate;
+private CodeTemplate syntaxAnalyzerTemplate;
+private CodeTemplate parameterListTemplate;
+
+//名称是否符合过滤的正则表达式
+private bool IsMatch(string name)
+{
+	if(FilterString==null || FilterString==string.Empty)
+	    return true;
+    System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(FilterString,System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    return regex.IsMatch(name);
+}
+
+//输出实体类到文件
+public void OutputEntityTemplate(TableSchema table) 
+{
+	if (entityTemplate == null) 
+    {
+		//创建一个模板编译器，参数为要编译的模板文件
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "实体类.cst"); 
+        //进行编译
+		compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0)
+        {
+			//通过调用CreateInstance方法获取一个模板对象
+           entityTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+              Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    }
+	//设置模板的属性
+    entityTemplate.SetProperty("SourceTable", table);
+	entityTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+	entityTemplate.SetProperty("XmlSerialization", XmlSerialization);
+	entityTemplate.SetProperty("LazyLoad",LazyLoad);
+    //打印一下信息
+	Response.Write(table.Name+"表的实体类生成成功\r\n");
+    //使用文件流将生成的代码保存到文件 
+	StreamWriter fileWriter = null;
+    try
+	{
+		//打开文件流
+		fileWriter = new StreamWriter(OutputDirectory+"\\Model\\AutoGenerate\\"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	//将文件保存到流
+	entityTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+//输出视图实体类到文件
+public void OutputViewModelTemplate(ViewSchema view) 
+{
+	if (viewEntityTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "视图实体类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0)
+        {
+           viewEntityTemplate = compiler.CreateInstance();
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+               Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    }
+    viewEntityTemplate.SetProperty("SourceView", view);
+	viewEntityTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    Response.Write(view.Name+"视图的实体类生成成功\r\n");
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\Model\\AutoGenerate\\"+GetPasicString(view.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	viewEntityTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+//输出表操作类到文件
+public void OutputOperatorTemplate(TableSchema table) 
+{
+	if (operatorTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "操作类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+           operatorTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+               Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    } 
+    operatorTemplate.SetProperty("SourceTable", table);
+	operatorTemplate.SetProperty("XmlSerialization", XmlSerialization);
+	operatorTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    operatorTemplate.SetProperty("ConnectionString", ConnectionString);
+    Response.Write(table.Name+"表的操作类生成成功\r\n");
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\DAL\\AutoGenerate\\D"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	operatorTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+//输出视图操作类到文件
+public void OutputViewOperatorTemplate(ViewSchema view) 
+{
+	if (viewOperatorTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "视图操作类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+            viewOperatorTemplate = compiler.CreateInstance(); 
+			
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+               Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    } 
+    viewOperatorTemplate.SetProperty("SourceView", view);
+	viewOperatorTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    viewOperatorTemplate.SetProperty("ConnectionString", ConnectionString);
+	viewOperatorTemplate.SetProperty("TemporaryView", TemporaryView);
+    Response.Write(view.Name+"视图的操作类生成成功\r\n");
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\DAL\\AutoGenerate\\D"+GetPasicString(view.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	viewOperatorTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+//输出属性映射类到文件
+public void OutputPropertyMapTemplate(TableSchema table) 
+{
+	if (propertyMapTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "属性映射类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+            propertyMapTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+               Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    } 
+    propertyMapTemplate.SetProperty("SourceTable", table);
+	propertyMapTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\ObjectQuery\\"+GetPasicString(table.Name)+"Map.cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	propertyMapTemplate.Render(fileWriter);
+	fileWriter.Close();
+	Response.Write(table.Name+"表的属性映射类生成成功\r\n");
+}
+//输出视图属性映射类到文件
+public void OutputViewPropertyMapTemplate(ViewSchema view) 
+{
+	if (viewPropertyMapTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "视图属性映射类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+            viewPropertyMapTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+               Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    } 
+    viewPropertyMapTemplate.SetProperty("SourceView", view);
+	viewPropertyMapTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\ObjectQuery\\"+GetPasicString(view.Name)+"Map.cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	viewPropertyMapTemplate.Render(fileWriter);
+	fileWriter.Close();
+	Response.Write(view.Name+"视图的属性映射类生成成功\r\n");
+}
+//输出扩展表业务逻辑类到文件
+public void OutputTableBLLExtension(TableSchema table)
+{
+	OutputBLLExtension(GetPasicString(table.Name));
+}
+//输出扩展视图业务逻辑类到文件
+public void OutputViewBLLExtension(ViewSchema view)
+{
+	OutputBLLExtension(GetPasicString(view.Name));
+}
+//输出扩展视图业务逻辑类到文件
+public void OutputBLLExtension(string className)
+{
+	string fileName=OutputDirectory+"\\BLL\\Extension\\B"+className+".cs";
+	if(File.Exists(fileName))
+	    return;
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(fileName, false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	fileWriter.WriteLine("using System;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"DAL;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"Model;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"ObjectQuery;");
+    fileWriter.WriteLine("using System.Collections;");
+    fileWriter.WriteLine("using System.Collections.Generic;");
+    fileWriter.WriteLine("namespace "+NameSpacePrefix+"BLL");
+    fileWriter.WriteLine("{");
+    fileWriter.WriteLine("    public partial class B"+className);
+    fileWriter.WriteLine("    {");
+    fileWriter.WriteLine("    }");
+    fileWriter.WriteLine("}");
+    fileWriter.Close();
+}
+//输出表业务逻辑类到文件
+public void OutputTableBLLTemplate(TableSchema table) 
+{
+	if (tableBLTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "表业务逻辑类.cst"); 
+        compiler.Compile(); 
+        if (compiler.Errors.Count == 0) 
+        { 
+            tableBLTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+              Response.WriteLine(compiler.Errors[ i].ToString()); 
+            } 
+        } 
+    }
+	tableBLTemplate.SetProperty("SourceTable", table);
+	tableBLTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    Response.Write(table.Name+"表业务逻辑类生成成功\r\n");
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\BLL\\AutoGenerate\\B"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	tableBLTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+//输出视图业务逻辑类到文件
+public void OutputViewBLLTemplate(ViewSchema view) 
+{
+	if (viewBLTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "视图业务逻辑类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+            viewBLTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+                Response.WriteLine(compiler.Errors[ i].ToString()); 
+            } 
+        } 
+    }
+    viewBLTemplate.SetProperty("SourceView", view);
+	viewBLTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    Response.Write(view.Name+"视图业务逻辑类生成成功\r\n");
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\BLL\\AutoGenerate\\B"+GetPasicString(view.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	viewBLTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+//输出连接类到文件
+public void OutputConnectionTemplate() 
+{
+	if (connectionTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "连接类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+           connectionTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+                Response.WriteLine(compiler.Errors[ i].ToString()); 
+            } 
+        } 
+    }
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\DAL\\Connection.cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	connectionTemplate.SetProperty("ConnectionString", ConnectionString);
+	connectionTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+	connectionTemplate.Render(fileWriter);
+	fileWriter.Close();
+	Response.Write("连接类生成成功\r\n");
+}
+//输出语法分析器类到文件
+public void OutputSyntaxAnalyzerTemplate() 
+{
+	if (syntaxAnalyzerTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "语法分析器类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+           syntaxAnalyzerTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+                Response.WriteLine(compiler.Errors[ i].ToString()); 
+            } 
+        } 
+    }
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\ObjectQuery\\SyntaxAnalyzer.cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	syntaxAnalyzerTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+	syntaxAnalyzerTemplate.Render(fileWriter);
+	fileWriter.Close();
+	Response.Write("语法分析器类生成成功\r\n");
+}
+public void OutputParameterListTemplate()
+{
+	if (parameterListTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "参数类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+           parameterListTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+                Response.WriteLine(compiler.Errors[ i].ToString()); 
+            } 
+        } 
+    }
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\Model\\ParameterList.cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	parameterListTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+	parameterListTemplate.Render(fileWriter);
+	fileWriter.Close();
+	Response.Write("参数类生成成功\r\n");
+}
+//输出实体映射类到文件
+public void OutputEntityMapTemplate() 
+{
+	if (entityMapTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "实体映射类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+           entityMapTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+                Response.WriteLine(compiler.Errors[ i].ToString()); 
+            } 
+        } 
+    }
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\ObjectQuery\\EntityMap.cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	try
+	{
+		entityMapTemplate.SetProperty("FilterString", FilterString);
+		entityMapTemplate.SetProperty("SourceDatabase", SourceDatabase);
+		entityMapTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+		entityMapTemplate.SetProperty("TemporaryView", TemporaryView);
+		entityMapTemplate.Render(fileWriter);
+	}
+	finally
+	{
+		fileWriter.Close();
+	}
+	
+	Response.Write("实体映射类生成成功\r\n");
+}
+private bool IsLinkSelf(TableSchema table)
+{
+	foreach(TableKeySchema tableKey in table.ForeignKeys)
+	{
+		if(tableKey.ForeignKeyTable.Name==tableKey.PrimaryKeyTable.Name)
+		    return true;
+	}
+	return false;
+}
+
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_');
+	foreach(string str in strList)
+	{
+		pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+
+//输出扩展表数据访问类到文件
+public void OutputTableDALExtension(TableSchema table)
+{
+	OutputDALExtension(GetPasicString(table.Name));
+}
+//输出扩展视图数据访问类到文件
+public void OutputViewDALExtension(ViewSchema view)
+{
+	OutputDALExtension(GetPasicString(view.Name));
+}
+//输出扩展表实体类到文件
+public void OutputTableModelExtension(TableSchema table)
+{
+	OutputModelExtension(GetPasicString(table.Name));
+}
+//输出扩展视图实体类到文件
+public void OutputViewModelExtension(ViewSchema view)
+{
+	OutputModelExtension(GetPasicString(view.Name));
+}
+
+//输出扩展业务逻辑类到文件
+public void OutputDALExtension(string className)
+{
+	string fileName=OutputDirectory+"\\DAL\\Extension\\D"+className+".cs";
+	if(File.Exists(fileName))
+	    return;
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(fileName, false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	fileWriter.WriteLine("using System;");
+	fileWriter.WriteLine("using System.Data;");
+	fileWriter.WriteLine("using System.Data.SqlClient;");
+    fileWriter.WriteLine("using System.Collections;");
+    fileWriter.WriteLine("using System.Collections.Generic;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"Model;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"ObjectQuery;");
+	fileWriter.WriteLine("namespace "+NameSpacePrefix+"DAL");
+    fileWriter.WriteLine("{");
+    fileWriter.WriteLine("    internal partial class D"+className);
+    fileWriter.WriteLine("    {");
+    fileWriter.WriteLine("    }");
+    fileWriter.WriteLine("}");
+    fileWriter.Close();
+}
+//输出扩展实体类到文件
+public void OutputModelExtension(string className)
+{
+	string fileName=OutputDirectory+"\\Model\\Extension\\"+className+".cs";
+	if(File.Exists(fileName))
+	    return;
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(fileName, false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	fileWriter.WriteLine("using System;");
+    fileWriter.WriteLine("using System.Collections;");
+    fileWriter.WriteLine("using System.Collections.Generic;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"DAL;");
+    fileWriter.WriteLine("namespace "+NameSpacePrefix+"Model");
+    fileWriter.WriteLine("{");
+    fileWriter.WriteLine("    public partial class "+className);
+    fileWriter.WriteLine("    {");
+    fileWriter.WriteLine("    }");
+    fileWriter.WriteLine("}");
+    fileWriter.Close();
+}
+
+
+
+//输出目录属性
+private string outputDirectory = @"C:";
+[Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor)), Category("目标文件夹"), Description("Output directory.")]
+public string OutputDirectory
+{
+    get {return outputDirectory;}
+    set {outputDirectory= value;}
+}
+
+</script>

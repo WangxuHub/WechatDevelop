@@ -1,0 +1,52 @@
+﻿<%-- 
+Name:搜索类模板
+Author: 黄小云
+Description: 生成搜索类的模板
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="SourceView" Type="SchemaExplorer.ViewSchema" Category="Context" Description="Table that the stored procedures should be based on." %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace <%=NameSpacePrefix%>ObjectQuery
+{
+    public partial class <%= GetPasicString(SourceView.Name) %>Map:IMap
+	{
+	    private Dictionary<string, string> dictionary = new Dictionary<string, string>();
+        public <%= GetPasicString(SourceView.Name) %>Map()
+        {
+		<% foreach (ViewColumnSchema column in SourceView.Columns) { %>
+        	dictionary.Add("<%= GetPasicString(column.Name).ToLower() %>", "<%= column.Name %>");
+    	<% } %>
+        }
+
+        #region IMap 成员
+
+        public string this[string propertyName]
+        {
+            get { return dictionary[propertyName.ToLower()]; }
+        }
+
+        #endregion
+	}
+}
+<script runat="template">
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_',' ');
+	foreach(string str in strList)
+	{
+		if(str!=string.Empty)
+			pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+</script>

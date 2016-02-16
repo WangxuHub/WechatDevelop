@@ -2,14 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DBObjectQuery
+namespace DBHelper.ObjectQuery
 {
     internal class EntityMap
     {
         private static Dictionary<string, EntityInfo> entitiesMap = new Dictionary<string, EntityInfo>();
         static EntityMap()
         {
-            entitiesMap.Add("wxuser",new EntityInfo("WX_User",new WXUserMap()));
+            entitiesMap.Add("jcuser",new EntityInfo("JC_User",new JCUserMap()));
 		}
         public static EntityInfo GetEntityInfo(string entityName)
         {

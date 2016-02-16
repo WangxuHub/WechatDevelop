@@ -1,22 +1,22 @@
 ﻿using System;
-using DBDAL;
-using DBModel;
+using DBHelper.DAL;
+using DBHelper.Model;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DBBLL
+namespace DBHelper.BLL
 {
-    public partial class BWXUser
+    public partial class BJCUser
 	{
 	    #region 插入实体操作部份
 	    /// <summary>
         /// 插入实体
         /// </summary>
-        /// <param name="wXUser">实体类对象</param>
+        /// <param name="jCUser">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-	    public static int Insert(WXUser wXUser)
+	    public static int Insert(JCUser jCUser)
 		{
-			return DWXUser.Insert(wXUser);
+			return DJCUser.Insert(jCUser);
 		}
 		#endregion
 		
@@ -24,11 +24,11 @@ namespace DBBLL
 		/// <summary>
         /// 删除实体
         /// </summary>
-        /// <param name="wXUser">实体类对象</param>
+        /// <param name="jCUser">实体类对象</param>
         /// <returns>影响的记录行数</returns>
-        public static int Delete(WXUser wXUser)
+        public static int Delete(JCUser jCUser)
         {
-            return DWXUser.Delete(wXUser);
+            return DJCUser.Delete(jCUser);
         }
 		/// <summary>
         /// 根据对象查询语句删除
@@ -38,7 +38,7 @@ namespace DBBLL
         /// <returns>影响的记录行数</returns>
         public static int Delete(string oql, ParameterList parameters)
         {
-            return DWXUser.Delete(oql,parameters);
+            return DJCUser.Delete(oql,parameters);
         }
 		#endregion
 		
@@ -47,11 +47,11 @@ namespace DBBLL
 		/// <summary>
         /// 更新实体
         /// </summary>
-        /// <param name="wXUser">实体类对象</param>
+        /// <param name="jCUser">实体类对象</param>
         /// <returns>影响的记录行数</returns>
-	    public static int Update(WXUser wXUser)
+	    public static int Update(JCUser jCUser)
 		{
-		    return DWXUser.Update(wXUser);
+		    return DJCUser.Update(jCUser);
 		}
 		
 		/// <summary>
@@ -62,7 +62,7 @@ namespace DBBLL
         /// <returns>影响的记录行数</returns>
         public static int Update(string oql, ParameterList parameters)
         {
-            return DWXUser.Update(oql,parameters);
+            return DJCUser.Update(oql,parameters);
         }
 		#endregion
 		
@@ -71,9 +71,9 @@ namespace DBBLL
         /// \查询实体集合
         /// </summary>
         /// <returns>实体类对象集合</returns>
-        public static List<WXUser> Select()
+        public static List<JCUser> Select()
         {
-			return DWXUser.Select();
+			return DJCUser.Select();
         }
 		/// <summary>
         /// 递归查询实体集合
@@ -81,9 +81,9 @@ namespace DBBLL
 		/// <param name="recursiveType">递归类型</param>
         /// <param name="recursiveDepth">递归深度</param>
         /// <returns>实体类对象集合</returns>
-        public static List<WXUser> Select(RecursiveType recursiveType, int recursiveDepth)
+        public static List<JCUser> Select(RecursiveType recursiveType, int recursiveDepth)
         {
-			return DWXUser.Select(recursiveType, recursiveDepth);
+			return DJCUser.Select(recursiveType, recursiveDepth);
         }
 		
 		/// <summary>
@@ -92,9 +92,9 @@ namespace DBBLL
         /// <param name="oql">对象查询语句</param>
         /// <param name="parameters">参数列表</param>
         /// <returns>实体类对象集合</returns>
-        public static List<WXUser> Select(string oql, ParameterList parameters)
+        public static List<JCUser> Select(string oql, ParameterList parameters)
         {
-			return DWXUser.Select(oql, parameters);
+			return DJCUser.Select(oql, parameters);
         }
 		
 		/// <summary>
@@ -105,9 +105,9 @@ namespace DBBLL
 		/// <param name="recursiveType">递归类型</param>
         /// <param name="recursiveDepth">递归深度</param>
         /// <returns>实体类对象集合</returns>
-        public static List<WXUser> Select(string oql, ParameterList parameters,RecursiveType recursiveType, int recursiveDepth)
+        public static List<JCUser> Select(string oql, ParameterList parameters,RecursiveType recursiveType, int recursiveDepth)
         {
-			return DWXUser.Select(oql, parameters, recursiveType, recursiveDepth);
+			return DJCUser.Select(oql, parameters, recursiveType, recursiveDepth);
         }
 		#endregion
 		
@@ -118,9 +118,9 @@ namespace DBBLL
         /// <param name="oql">对象查询语句</param>
         /// <param name="parameters">参数列表</param>
         /// <returns>实体对象</returns>
-        public static WXUser SelectSingle(string oql, ParameterList parameters)
+        public static JCUser SelectSingle(string oql, ParameterList parameters)
         {
-             return DWXUser.SelectSingle(oql, parameters);
+             return DJCUser.SelectSingle(oql, parameters);
         }
 		/// <summary>
         /// 更据对象查询语句递归查询单个实体
@@ -130,9 +130,9 @@ namespace DBBLL
 		/// <param name="recursiveType">递归类型</param>
         /// <param name="recursiveDepth">递归深度</param>
         /// <returns>实体对象</returns>
-        public static WXUser SelectSingle(string oql, ParameterList parameters, RecursiveType recursiveType, int recursiveDepth)
+        public static JCUser SelectSingle(string oql, ParameterList parameters, RecursiveType recursiveType, int recursiveDepth)
         {
-		    return DWXUser.SelectSingle(oql, parameters, recursiveType, recursiveDepth);
+		    return DJCUser.SelectSingle(oql, parameters, recursiveType, recursiveDepth);
 		}
 		
 		/// <summary>
@@ -140,9 +140,9 @@ namespace DBBLL
         /// </summary>
         /// <param name="userID">主键值</param>
         /// <returns>实体类对象</returns>
-        public static WXUser SelectSingle(int? userID)
+        public static JCUser SelectSingle(string userID)
         {
-            return DWXUser.SelectSingle(userID);
+            return DJCUser.SelectSingle(userID);
         }
 		
 		/// <summary>
@@ -151,9 +151,9 @@ namespace DBBLL
 		/// <param name="recursiveType">递归类型</param>
         /// <param name="recursiveDepth">递归深度</param>
         /// <returns>实体对象</returns>
-        public static WXUser SelectSingle(int? userID, RecursiveType recursiveType, int recursiveDepth)
+        public static JCUser SelectSingle(string userID, RecursiveType recursiveType, int recursiveDepth)
         {
-		    return DWXUser.SelectSingle(userID, recursiveType, recursiveDepth);
+		    return DJCUser.SelectSingle(userID, recursiveType, recursiveDepth);
 		}
 		#endregion
     }

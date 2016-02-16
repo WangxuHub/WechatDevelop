@@ -1,0 +1,109 @@
+﻿<%-- 
+Name:实体类的模板
+Author:黄小云
+Description:生成实体类的模板
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="数据源" Description="生成三层架构的数据库" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Property Name="TemporaryView" Type="System.Boolean" Default="False" Optional="False" Category="Booleans" Description="是否是临时视图，如果是临时视图，生成后可以从数据中删除，不影响程序的运行" %>
+<%@ Property Name="FilterString" Type="System.String" Default="" Optional="True" Category="表或视图名过滤" Description="通过正则表达式对表名或视图名进行过滤，符合条件的才生成映射" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Text.RegularExpressions" %>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace <%=NameSpacePrefix%>ObjectQuery
+{
+    internal class EntityMap
+    {
+        private static Dictionary<string, EntityInfo> entitiesMap = new Dictionary<string, EntityInfo>();
+        static EntityMap()
+        {
+		<%foreach(TableSchema table in SourceDatabase.Tables) { if(IsMatch(table.Name)){%>
+            entitiesMap.Add("<%=GetPasicString(table.Name).ToLower()%>",new EntityInfo("<%=table.Name%>",new <%=GetPasicString(table.Name)%>Map()));
+        <%}}%>
+		<%foreach(ViewSchema view in SourceDatabase.Views) {if(IsMatch(view.Name)){%>
+            entitiesMap.Add("<%=GetPasicString(view.Name).ToLower()%>",new EntityInfo("<%=GetViewName(view)%>",new <%=GetPasicString(view.Name)%>Map()));
+        <%}}%>
+		}
+        public static EntityInfo GetEntityInfo(string entityName)
+        {
+            try
+            {
+                return entitiesMap[entityName.ToLower()];
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new Exception("from 后有语法错误，" + entityName + "实体不存在");
+            } 
+        }
+    }
+	interface IMap
+    {
+        string this[string propertyName]
+        {
+            get;
+        }
+    }
+    class EntityInfo
+    {
+        private string tableName;
+        public string TableName
+        {
+            get { return tableName; }
+            set { tableName = value; }
+        }
+        private IMap propertyMap;
+        public IMap PropertyMap
+        {
+            get { return propertyMap; }
+            set { propertyMap = value; }
+        }
+        public EntityInfo(string name, IMap map)
+        {
+            this.tableName = name;
+            this.propertyMap = map;
+        }
+    }
+}
+<script runat="template">
+//名称是否符合过滤的正则表达式
+private bool IsMatch(string name)
+{
+	if(FilterString==null || FilterString==string.Empty)
+	    return true;
+    System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(FilterString,System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    return regex.IsMatch(name);
+}
+private string GetViewName(ViewSchema view)
+{
+	if(TemporaryView)
+	{
+		Regex r = new Regex("\\bas\\b", RegexOptions.IgnoreCase);
+		Match m = r.Match(view.ViewText);
+		int index = m.Index;
+		r = new Regex("\\bs", RegexOptions.IgnoreCase);
+		m = r.Match(view.ViewText, index);
+		return "("+view.ViewText.Substring(m.Index).Replace("\r\n"," ").Replace("\r"," ").Replace("\n"," ")+") "+view.Name;
+	}
+	else
+	    return view.Name;
+}
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_',' ');
+	foreach(string str in strList)
+	{
+		if(str!=string.Empty)
+			pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+</script>

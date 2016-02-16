@@ -1,0 +1,248 @@
+﻿<%-- 
+Name:三层架构父模板
+Author: 黄小云
+Description: 如果只改动了一个表的表结构，可以使用该模板进行更新。
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="数据源" Description="生成三层架构的数据表" %>
+<%@ Property Name="ConnectionString" Type="System.String" Default="ConnectionString" Optional="True" Category="Strings" Description="数据库连接串在配置文件中的的name" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Property Name="XmlSerialization" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否要进行XML序列化，如果要进行XML序列化，不能循环引用，所以查询子对象的集合时集合中的所有子对象会损失对父对象的引用" %>
+<%@ Property Name="LazyLoad" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否使用延迟加载方式，如果使用，即使在第一次查询时没有填充子对象集合，在读取子对象集合属性时也会去获取该集合的值。如果使用XML序列化，延迟加载会被禁用" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.IO" %>
+<%--如果目录不存在，创建目录--%>
+<% if(!Directory.Exists(OutputDirectory)) Directory.CreateDirectory(OutputDirectory); %>
+<% if(!Directory.Exists(OutputDirectory+"\\DAL")) Directory.CreateDirectory(OutputDirectory+"\\DAL"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\BLL")) Directory.CreateDirectory(OutputDirectory+"\\BLL"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\BLL\\AutoGenerate")) Directory.CreateDirectory(OutputDirectory+"\\BLL\\AutoGenerate"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\BLL\\Extension")) Directory.CreateDirectory(OutputDirectory+"\\BLL\\Extension"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\Model")) Directory.CreateDirectory(OutputDirectory+"\\Model"); %>
+<% if(!Directory.Exists(OutputDirectory+"\\ObjectQuery")) Directory.CreateDirectory(OutputDirectory+"\\ObjectQuery"); %>
+<%
+//生成表相关类
+OutputEntityTemplate(SourceTable);
+OutputOperatorTemplate(SourceTable);
+OutputPropertyMapTemplate(SourceTable);
+OutputTableBLTemplate(SourceTable);
+OutputTableBLExtension(SourceTable);
+%> 
+<script runat="template">
+private CodeTemplate entityTemplate; 
+private CodeTemplate operatorTemplate;
+private CodeTemplate propertyMapTemplate;
+private CodeTemplate tableBLTemplate;
+
+//输出实体类到文件
+public void OutputEntityTemplate(TableSchema table) 
+{
+	if (entityTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "实体类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0)
+        { 
+           entityTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+              Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    } 
+    entityTemplate.SetProperty("SourceTable", table);
+	entityTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    entityTemplate.SetProperty("XmlSerialization", XmlSerialization);
+	entityTemplate.SetProperty("LazyLoad",LazyLoad);
+	Response.Write(table.Name+"表的实体类生成成功\r\n");
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\Model\\"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	entityTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+
+//输出操作类到文件
+public void OutputOperatorTemplate(TableSchema table) 
+{
+	if (operatorTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "操作类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+           operatorTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+               Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    } 
+    operatorTemplate.SetProperty("SourceTable", table);
+	operatorTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    Response.Write(table.Name+"表的操作类生成成功\r\n");
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\DAL\\D"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	operatorTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+
+//输出属性映射类到文件
+public void OutputPropertyMapTemplate(TableSchema table) 
+{
+	if (propertyMapTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "属性映射类.cst"); 
+        compiler.Compile(); 
+         
+        if (compiler.Errors.Count == 0) 
+        { 
+            propertyMapTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+               Response.WriteLine(compiler.Errors[i].ToString()); 
+            } 
+        } 
+    } 
+    propertyMapTemplate.SetProperty("SourceTable", table);
+	propertyMapTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    Response.Write(table.Name+"表的属性映射类生成成功\r\n");
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\ObjectQuery\\"+GetPasicString(table.Name)+"Map.cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	propertyMapTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+//输出扩展表业务逻辑类到文件
+public void OutputTableBLExtension(TableSchema table)
+{
+	OutputBLExtension(GetPasicString(table.Name));
+}
+
+//输出扩展视图业务逻辑类到文件
+public void OutputBLExtension(string className)
+{
+	string fileName=OutputDirectory+"\\BLL\\Extension\\B"+className+".cs";
+	if(File.Exists(fileName))
+	    return;
+	StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(fileName, false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	fileWriter.WriteLine("using System;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"DAL;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"Model;");
+    fileWriter.WriteLine("using "+NameSpacePrefix+"Search;");
+    fileWriter.WriteLine("using System.Collections;");
+    fileWriter.WriteLine("using System.Collections.Generic;");
+    fileWriter.WriteLine("namespace "+NameSpacePrefix+"BLL");
+    fileWriter.WriteLine("{");
+    fileWriter.WriteLine("    public partial class B"+className);
+    fileWriter.WriteLine("    {");
+    fileWriter.WriteLine("    }");
+    fileWriter.WriteLine("}");
+    fileWriter.Close();
+}
+//输出表业务逻辑类到文件
+public void OutputTableBLTemplate(TableSchema table) 
+{
+	if (tableBLTemplate == null) 
+    { 
+        CodeTemplateCompiler compiler = new CodeTemplateCompiler(this.CodeTemplateInfo.DirectoryName + "表业务逻辑类.cst"); 
+        compiler.Compile(); 
+        if (compiler.Errors.Count == 0) 
+        { 
+            tableBLTemplate = compiler.CreateInstance(); 
+        } 
+        else 
+        { 
+            for (int i = 0; i < compiler.Errors.Count; i++) 
+            {
+              Response.WriteLine(compiler.Errors[ i].ToString()); 
+            } 
+        } 
+    }
+	tableBLTemplate.SetProperty("SourceTable", table);
+	tableBLTemplate.SetProperty("NameSpacePrefix", NameSpacePrefix);
+    Response.Write(table.Name+"表业务逻辑类生成成功\r\n");
+    StreamWriter fileWriter = null;
+    try
+	{
+		fileWriter = new StreamWriter(OutputDirectory+"\\BLL\\AutoGenerate\\B"+GetPasicString(table.Name)+".cs", false,System.Text.Encoding.UTF8);
+	}
+	catch
+	{
+		return;
+	}
+	tableBLTemplate.Render(fileWriter);
+	fileWriter.Close();
+}
+
+private bool IsLinkSelf(TableSchema table)
+{
+	foreach(TableKeySchema tableKey in table.ForeignKeys)
+	{
+		if(tableKey.ForeignKeyTable.Name==tableKey.PrimaryKeyTable.Name)
+		    return true;
+	}
+	return false;
+}
+
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_');
+	foreach(string str in strList)
+	{
+		pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+//输出目录属性
+private string outputDirectory = @"C:";
+[Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor)), Category("目标文件夹"), Description("Output directory.")]
+public string OutputDirectory
+{
+    get {return outputDirectory;}
+    set {outputDirectory= value;}
+}
+
+</script>

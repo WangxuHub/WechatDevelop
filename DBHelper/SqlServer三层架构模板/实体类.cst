@@ -1,0 +1,183 @@
+﻿<%-- 
+Name:实体类的模板
+Author:黄小云
+Description:生成实体类的模板
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="生成实体类的源表" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Property Name="XmlSerialization" Type="System.Boolean" Default="False" Optional="False" Category="Xml序列化" Description="是否要进行XML序列化，如果要进行XML序列化，不能循环引用，所以查询子对象的集合时集合中的所有子对象会损失对父对象的引用" %>
+<%@ Property Name="LazyLoad" Type="System.Boolean" Default="False" Optional="False" Category="延迟加载" Description="是否使用延迟加载方式，如果使用，即使在第一次查询时如果没有填充子对象集合，在读取子对象集合属性时也会去获取该集合的值。如果使用XML序列化，延迟加载会被禁用" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using <%=NameSpacePrefix%>DAL;
+
+namespace <%=NameSpacePrefix%>Model
+{
+	[Serializable]
+    public partial class <%= GetPasicString(SourceTable.Name) %>
+	{
+	<%--遍历表中的所有字段，并生成类的字段--%>
+    <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+        <%= ParseField(SourceTable.Columns[i]) %> 
+    <% } %>
+	<% if(SourceTable.ForeignKeys.Count>0){ %>
+	    //外键关联的实体字段
+	<%}%>
+	<%--遍历表中的所有主外键关系，并生成类的外键实体和其它类的集合字段--%>
+	<% System.Collections.Generic.Dictionary<string,int> counts=new System.Collections.Generic.Dictionary<string,int>();
+		foreach(TableKeySchema tableKey in SourceTable.Keys) { %>
+		<%--如果表的主键被其它表的外键引用，生成实体类集合字段--%>
+	    <% if(tableKey.PrimaryKey.Table==SourceTable) 
+		{
+			if(counts.ContainsKey(tableKey.ForeignKeyTable.Name)) 
+				counts[tableKey.ForeignKeyTable.Name]++; 
+			else 
+			    counts.Add(tableKey.ForeignKeyTable.Name, 1);%>
+	    private List<<%=GetPasicString(tableKey.ForeignKeyTable.Name)%>> <%= GetCamelString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>;
+		<% }%>
+		<%--如果表的外键引用其它表的主键，生成外键实体类字段--%>
+		<% if(tableKey.ForeignKeyTable==SourceTable) {%>
+	    private <%= GetPasicString(tableKey.PrimaryKeyTable.Name) %> <%= GetCamelString(GetForeignKeyEntityName(tableKey.ForeignKeyMemberColumns[0].Name)) %>;
+	<% } }%>
+	
+	
+	<% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+	    /// <summary>
+        /// <%= SourceTable.Columns[i].Description %>
+        /// </summary>
+		<%= ParseProperty(SourceTable.Columns[i]) %>
+		{
+		    get{ return <%= GetCamelString(SourceTable.Columns[i].Name) %>; }
+			set{ <%= GetCamelString(SourceTable.Columns[i].Name) %>=value; }
+		}
+    <% } %>
+	<% if(SourceTable.ForeignKeys.Count>0){ %>
+	    /// <summary>
+		/// 外键关联的实体属性
+		/// </summary>
+	<%}%>
+	<%--遍历表中的所有主外键关系，并生成类的外键实体和其它类的集合属性--%>
+	<% counts.Clear();
+	foreach(TableKeySchema tableKey in SourceTable.Keys) {%>
+		<% if(tableKey.PrimaryKey.Table==SourceTable) 
+		{
+			if(counts.ContainsKey(tableKey.ForeignKeyTable.Name)) 
+				counts[tableKey.ForeignKeyTable.Name]++; 
+			else 
+			    counts.Add(tableKey.ForeignKeyTable.Name, 1);%>
+	    public List<<%=GetPasicString(tableKey.ForeignKeyTable.Name)%>> <%= GetPasicString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>
+		{
+		    get
+			{
+				<%if(XmlSerialization || !LazyLoad){%>
+				return <%= GetCamelString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>; 
+				<%} else {%>
+			    if(<%= GetCamelString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>==null)
+			    <%if(tableKey.ForeignKeyTable.ForeignKeys.Count==1){%>				    
+					return D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParentEntity(this);
+				<%} else {%>
+					return D<%= GetPasicString(tableKey.ForeignKeyTable.Name) %>.InvokeByParentEntity("<%=tableKey.ForeignKeyMemberColumns[0].Name %>", this);
+				<%}%>
+				else
+				    return <%= GetCamelString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%>; 
+				<%}%>
+			}
+			set
+			{ 
+				<%= GetCamelString(tableKey.ForeignKeyTable.Name) %>List<%=counts[tableKey.ForeignKeyTable.Name]==1?"":counts[tableKey.ForeignKeyTable.Name].ToString()%> = value; 
+			}
+		}
+		<% }%>
+		
+		<% if(tableKey.ForeignKeyTable==SourceTable) {%>
+	    public <%= GetPasicString(tableKey.PrimaryKeyTable.Name) %> <%= GetPasicString(GetForeignKeyEntityName(tableKey.ForeignKeyMemberColumns[0].Name)) %>
+		{
+		    get{ return <%= GetCamelString(GetForeignKeyEntityName(tableKey.ForeignKeyMemberColumns[0].Name)) %>; }
+			set{ <%= GetCamelString(GetForeignKeyEntityName(tableKey.ForeignKeyMemberColumns[0].Name)) %> = value; }
+		}
+	<% } } %>
+	}
+}
+<script runat="template">
+private string collectionString="";
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_',' ');
+	foreach(string str in strList)
+	{
+		if(str!=string.Empty)
+			pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+//获取外键实体名规则的字符串
+public string GetForeignKeyEntityName(string columnName)
+{
+	if(columnName.Substring(columnName.Length-3).ToLower()=="_id")
+	{
+		return columnName.Substring(0,columnName.Length-3)+"Ref";
+	}
+	if(columnName.Substring(columnName.Length-2).ToLower()=="id")
+	{
+		return columnName.Substring(0,columnName.Length-2)+"Ref";
+	}
+	return columnName+"Ref";
+}
+//获取Camel规则的字符串
+public string GetCamelString(string var)
+{
+	string[] strList=var.Split('_',' ');
+	string camelString=strList[0].Substring(0,1).ToLower()+strList[0].Substring(1);
+	for(int i=1; i<strList.Length; i++)
+	{
+		string str=strList[i];
+		if(str!=string.Empty)
+			camelString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	if(camelString=="class")
+	    camelString="cls";
+	return camelString;
+}
+public string ParseField(ColumnSchema column)
+{
+	string typeString=GetDataTypeString(column.DataType);
+	return "private "+typeString+" "+GetCamelString(column.Name)+";";
+}
+public string ParseProperty(ColumnSchema column)
+{
+	string typeString=GetDataTypeString(column.DataType);
+	return "public "+typeString+" "+GetPasicString(column.Name);
+}
+public string GetDataTypeString(DbType dbType)
+{
+	switch(dbType)
+	{
+		case DbType.Boolean: return "bool?";
+	    case DbType.Byte:return "byte?";
+		case DbType.SByte: return "sbyt?";
+		case DbType.Int16:return "short?";
+		case DbType.Int32:return "int?";
+		case DbType.Int64:return "long?";
+		case DbType.DateTime:case DbType.Date:return "DateTime?";
+		case DbType.Single:return "float?";
+		case DbType.Double:return "double?";
+		case DbType.UInt16: return "ushort?";
+		case DbType.UInt32: return "uint?";
+		case DbType.UInt64: return "ulong?";
+		case DbType.Currency:case DbType.Decimal:case DbType.VarNumeric:return "Decimal?";
+		case DbType.Object: return "object";
+		case DbType.Binary:return "byte[]";
+		case DbType.Time: return "TimeSpan";
+		default:return "string";
+	}
+}
+</script>

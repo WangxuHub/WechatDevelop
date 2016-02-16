@@ -1,0 +1,74 @@
+﻿<%-- 
+Name:表业务逻辑类模板
+Author:黄小云
+Description:生成表业务逻辑类的模板
+--%>
+<%@ CodeTemplate Language="C#" ResponseEncoding="UTF-8" TargetLanguage="Text" Src="" Inherits="" Debug="False" Description="Template description here." %>
+<%@ Property Name="SourceView" Type="SchemaExplorer.ViewSchema" Category="Context" Description="生成业务逻辑类的源视图" %>
+<%@ Property Name="NameSpacePrefix" Type="System.String" Default="" Optional="True" Category="Strings" Description="命名空间前缀" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="System.Data" %>
+<% collectionString="List<"+GetPasicString(SourceView.Name)+">"; %>
+using System;
+using <%=NameSpacePrefix%>DAL;
+using <%=NameSpacePrefix%>Model;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace <%=NameSpacePrefix%>BLL
+{
+    public partial class B<%= GetPasicString(SourceView.Name) %>
+	{
+		/// <summary>
+        /// 查询所有实体
+        /// </summary>
+        /// <returns>实体类对象列表</returns>
+        public static <%= collectionString %> Select()
+        {
+            return D<%= GetPasicString(SourceView.Name)+".Select()" %>;
+        }
+				
+		/// <summary>
+        /// 查询所有实体
+        /// </summary>
+        /// <param name="oql">对象查询语句</param>
+        /// <param name="parameters">参数列表</param>
+        /// <returns>实体类对象列表</returns>
+        public static <%= collectionString %> Select(string oql, ParameterList parameters)
+        {
+            return D<%= GetPasicString(SourceView.Name)+".Select(oql, parameters)" %>;
+        }
+    }
+}
+<script runat="template">
+private string collectionString="";
+
+//获取Pasic规则的字符串
+public string GetPasicString(string var)
+{
+	string pasicString="";
+	string[] strList=var.Split('_');
+	foreach(string str in strList)
+	{
+		pasicString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	return pasicString;
+}
+//获取Camel规则的字符串
+public string GetCamelString(string var)
+{
+	
+	string[] strList=var.Split('_');
+	string camelString=strList[0].Substring(0,1).ToLower()+strList[0].Substring(1);
+	for(int i=1; i<strList.Length; i++)
+	{
+		string str=strList[i];
+		camelString+=str.Substring(0,1).ToUpper()+str.Substring(1);
+	}
+	if(camelString=="class")
+	    camelString="cls";
+	return camelString;
+}
+</script>

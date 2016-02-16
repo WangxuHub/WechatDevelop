@@ -58,21 +58,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BLL\AutoGenerate\BWXUser.cs" />
-    <Compile Include="BLL\Extension\BWXUser.cs" />
-    <Compile Include="DAL\AutoGenerate\DWXUser.cs" />
+    <Compile Include="BLL\AutoGenerate\BJCUser.cs" />
+    <Compile Include="BLL\Extension\BJCUser.cs" />
+    <Compile Include="DAL\AutoGenerate\DJCUser.cs" />
     <Compile Include="DAL\Connection.cs" />
-    <Compile Include="DAL\Extension\DWXUser.cs" />
-    <Compile Include="Model\AutoGenerate\WXUser.cs" />
-    <Compile Include="Model\Extension\WXUser.cs" />
+    <Compile Include="DAL\Extension\DJCUser.cs" />
+    <Compile Include="Model\AutoGenerate\JCUser.cs" />
+    <Compile Include="Model\Extension\JCUser.cs" />
     <Compile Include="Model\ParameterList.cs" />
     <Compile Include="ObjectQuery\EntityMap.cs" />
+    <Compile Include="ObjectQuery\JCUserMap.cs" />
     <Compile Include="ObjectQuery\SyntaxAnalyzer.cs" />
-    <Compile Include="ObjectQuery\WXUserMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CodeSmith模板生成三层架构的代码使用说明.doc" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

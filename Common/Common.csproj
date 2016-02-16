@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cryptography.cs" />
+    <Compile Include="Helper\Common.cs" />
     <Compile Include="Helper\CommonAshx.cs" />
     <Compile Include="Helper\JsonHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

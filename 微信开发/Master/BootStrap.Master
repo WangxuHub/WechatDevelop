@@ -101,16 +101,20 @@
                    </ul>
 
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a href="#" data-toggle="modal" data-target="#ModalUserLogin">登录</a></li>
-                        <li><a href="#" data-toggle="modal" data-target="#ModalUserRegister">注册</a></li>
-                        <li class="dropdown hidden">
-                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
-                          <ul class="dropdown-menu">
-                            <li><a href="#">Action</a></li>
-                            <li><a href="#">Another action</a></li>
-                            <li><a href="#">Something else here</a></li>
+                        <li runat="server" id="liLogin"><a href="#" data-toggle="modal" data-target="#ModalUserLogin">登录</a></li>
+                        <li runat="server" id="liRegister"><a href="#" data-toggle="modal" data-target="#ModalUserRegister">注册</a></li>
+                        <li runat="server" id="liUserInfo" visible="false" class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span runat="server" id='aUserName' style="max-width: 120px;overflow-x: hidden;text-overflow: ellipsis;white-space: nowrap;display:inline-block;">
+                              
+                            </span>
+                            <span class="caret"></span>
+                          </a>
+                          <ul class="dropdown-menu" style="min-width: 110px;">
+                            <li><a href="#">个人中心</a></li>
+                            <li><a href="#">修改密码</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="#">退出</a></li>
+                            <li><a href="javascript:loginOut();">注销</a></li>
                           </ul>
                         </li>
                    </ul>
@@ -120,7 +124,7 @@
 
 <!-- Modal 登录-->
 <div class="modal fade" id="ModalUserLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog" role="document" style="width:400px;">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -128,39 +132,48 @@
       </div>
       <div class="modal-body">
         <!--登录表单-->
-        <form class="form-horizontal">
+        <div class="form-horizontal">
           <div class="form-group">
-            <label for="inputEmail3" class="col-sm-2 control-label">账号</label>
-            <div class="col-sm-6">
-              <input type="text" class="form-control" id="inputEmail3" placeholder="UserName or Email">
+            <div class="col-sm-offset-1 col-sm-10">
+               <div class="input-group">
+                  <span class="input-group-addon">
+                      <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                  </span>
+                  <input type="text" class="form-control" placeholder="Username" aria-describedby="sizing-addon2" id="lgnUserName">
+              </div>
             </div>
           </div>
           <div class="form-group">
-            <label for="inputPassword3" class="col-sm-2 control-label">密码</label>
-            <div class="col-sm-6">
-              <input type="password" class="form-control" id="inputPassword3" placeholder="Password">
+            <div class="col-sm-offset-1 col-sm-10">
+              <div class="input-group">
+                  <span class="input-group-addon">
+                      <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+                  </span>
+                  <input type="password" class="form-control" placeholder="PassWord" aria-describedby="sizing-addon2" id="lgnPassWord">
+              </div>
             </div>
           </div>
           <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
+            <div class="col-sm-offset-4 col-sm-8">
               <div class="checkbox">
                 <label>
-                  <input type="checkbox"> Remember me
+                  <input type="checkbox" id="autoLgn">一周自动登录
                 </label>
               </div>
             </div>
           </div>
           <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
-              <button id="btnLogin" class="btn btn-default">Sign in</button>
+          
+            <div class="col-sm-6 col-sm-offset-2">
+              <button id="btnLogin" class="btn btn-primary">登录</button>
+              <button class="btn btn-default" onclick="jumpModal('register');">还未注册</button>
+            </div>
+            <div class="col-sm-4">
+                <p class="form-control-static" style="font-size:12px;"></p>
             </div>
           </div>
-        </form>
+        </div>
       </div>
-      <%--<div class="modal-footer">
-           <button type="button" class="btn btn-primary">登录</button>
-           <button type="button" class="btn btn-default">注册</button>
-      </div>--%>
     </div>
   </div>
 </div>
@@ -176,7 +189,7 @@
       </div>
       <div class="modal-body">
         <!--注册表单-->
-        <form class="form-horizontal"  novalidate="true">
+        <div class="form-horizontal"  novalidate="true">
           <div class="form-group">
             <label for="regNickName" class="col-sm-2 control-label">昵称</label>
             <div class="col-sm-6">
@@ -225,12 +238,13 @@
           <div class="form-group">
             <div class="col-sm-offset-4 col-sm-4">
               <button id="regSubmit" class="btn btn-primary">注册</button>
+              <button class="btn btn-default" onclick="jumpModal('login');">已有账号</button>
             </div>
             <div class="col-sm-4">
                 <p class="form-control-static"></p>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
@@ -238,7 +252,30 @@
 <script>
 //用户登录
     $("#btnLogin").click(function () {
-        alert("asdad");
+        $("#ModalUserLogin .form-control-static").text("");
+        var lgnUserName = $("#lgnUserName").val();
+        var lgnPassWord = $("#lgnPassWord").val();
+        if (!(lgnUserName && lgnPassWord)) {
+            showWaining($("#btnLogin"), "请输入账号和密码")
+            return false;
+        }
+
+        var postData = new Object();
+        postData.PostType = "LoginUser";
+        postData.lgnUserName = lgnUserName;
+        postData.lgnPassWord = lgnPassWord;
+        postData.autoLgn = $("#autoLgn").prop("checked");
+        $.post("/Ashx/User.ashx", postData, function (json) {
+            if (json.success) {//登录成功
+                $('#ModalUserLogin').modal('hide');
+                location.reload();
+            }
+            else {
+                showWaining($("#btnLogin"), json.msg)
+                return false;
+            }
+        }, 'json');
+        return false;
     });
 
     //用户注册
@@ -255,8 +292,8 @@
             showWaining($("#regUserName"), "请输入账号")
             return false;
         }
-        if (regUserName.length < 8) {
-            showWaining($("#regUserName"), "长度不得小于8")
+        if (regUserName.length < 6) {
+            showWaining($("#regUserName"), "长度不得小于6")
             return false;
         }
         if (regUserName.length > 100) {
@@ -315,6 +352,9 @@
                 jqInfo.addClass("text-success bounce animated");
                 setTimeout(function () {
                     jqInfo.removeClass("bounce");
+
+                    jumpModal('login');
+                    $("#lgnUserName").val(regUserName);
                 }, 1500);
                 return false;
             }
@@ -326,6 +366,25 @@
         return false;
     });
 
+    function jumpModal(dst) {
+        $('#ModalUserRegister,#ModalUserLogin').find("input").val('');
+        $('#ModalUserRegister,#ModalUserLogin').find(".form-control-static").text('');
+       
+        if (dst == 'login') {
+            $('#ModalUserRegister').modal('hide');
+            $('#ModalUserRegister').one('hidden.bs.modal', function (e) {
+                $('#ModalUserLogin').modal('show');
+            });
+        }
+        else if (dst == 'register') {
+            $('#ModalUserLogin').modal('hide'); ModalUserLogin
+            $('#ModalUserLogin').one('hidden.bs.modal', function (e) {
+                $('#ModalUserRegister').modal('show');
+            });
+        }
+    }
+
+
     function showWaining(jqObject,info) {
         jqObject.focus();
         var jqInfo= jqObject.parent().next().children(".form-control-static").text(info);
@@ -336,6 +395,16 @@
 		    jqInfo.removeClass("shake");						
 		},500);
 
+    }
+
+    function loginOut()
+    {
+        $.post("/Ashx/User.ashx",{PostType:'LoginOut'},function(json){
+            if(json.success)
+            {
+                location.reload();
+            }
+        },'json');
     }
 </script>
       <asp:ContentPlaceHolder ID="ContentPlaceHolderContent" runat="server"/> 

@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cryptography.cs" />
+    <Compile Include="CurUser.cs" />
     <Compile Include="Helper\Common.cs" />
     <Compile Include="Helper\CommonAshx.cs" />
     <Compile Include="Helper\JsonHelper.cs" />
@@ -88,7 +89,12 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\DBHelper\DBHelper.csproj">
+      <Project>{9D03D5E0-487F-48A7-8E4C-E323474DA632}</Project>
+      <Name>DBHelper</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

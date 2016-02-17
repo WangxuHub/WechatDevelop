@@ -64,7 +64,6 @@
     <Compile Include="DAL\Connection.cs" />
     <Compile Include="DAL\Extension\DJCUser.cs" />
     <Compile Include="Model\AutoGenerate\JCUser.cs" />
-    <Compile Include="Model\Extension\JCUser.cs" />
     <Compile Include="Model\ParameterList.cs" />
     <Compile Include="ObjectQuery\EntityMap.cs" />
     <Compile Include="ObjectQuery\JCUserMap.cs" />
@@ -82,6 +81,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Model\Extension\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

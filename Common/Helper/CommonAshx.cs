@@ -6,7 +6,7 @@ using System.Web;
 
 namespace Common.Helper
 {
-    public abstract class CommonAshx:IHttpHandler
+    public abstract class CommonAshx : IHttpHandler, System.Web.SessionState.IRequiresSessionState
     {
         public HttpContext conn;
         public mJsonResult json = new mJsonResult();

@@ -27,7 +27,7 @@ namespace <%=NameSpacePrefix%>BLL
         /// </summary>
         /// <param name="<%= GetCamelString(SourceTable.Name) %>">实体类对象</param>
         /// <returns>标识列值或影响的记录行数</returns>
-	    public static int Insert(<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
+	    public static <%=GetInsertReturnType()%> Insert(<%= GetPasicString(SourceTable.Name)+" "+GetCamelString(SourceTable.Name) %>)
 		{
 			return D<%= GetPasicString(SourceTable.Name)+".Insert("+GetCamelString(SourceTable.Name)+")" %>;
 		}
@@ -247,5 +247,26 @@ public bool ExistPK()
 		  return true;
 	}
 	return false;
+}
+
+//获取新增操作后的返回值，当前的主键ID，csy
+public string GetInsertReturnType()
+{
+    ColumnSchema priKey=GetPrimaryKeyColumn();
+    
+    
+	switch(priKey.DataType)
+	{
+		case DbType.Int16:return "short";
+		case DbType.Int32:return "int";
+		case DbType.Int64:return "long";
+		case DbType.Single:return "float";
+		case DbType.Double:return "double";
+		case DbType.UInt16: return "ushort";
+		case DbType.UInt32: return "uint";
+		case DbType.UInt64: return "ulong";
+        case DbType.Guid:return "Guid";
+		default:return "string";
+	}
 }
 </script>

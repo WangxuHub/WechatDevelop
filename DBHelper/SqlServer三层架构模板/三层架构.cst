@@ -10,6 +10,9 @@ Description: 在此模板中调用所有的子模板，并且将子模板中的�
 <%@ Property Name="TemporaryView" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否是临时视图，如果是临时视图，生成后可以从数据库中删除，不影响程序的运行" %>
 <%@ Property Name="XmlSerialization" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否要进行XML序列化，如果要进行XML序列化，不能循环引用，所以查询子对象的集合时集合中的所有子对象会损失对父对象的引用" %>
 <%@ Property Name="LazyLoad" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否使用延迟加载方式，如果使用，即使在第一次查询时没有填充子对象集合，在读取子对象集合属性时也会去获取该集合的值。如果使用XML序列化，延迟加载会被禁用" %>
+
+<%@ Property Name="CreateExtensionCsFile" Type="System.Boolean" Default="False" Optional="False" Category="生成方式" Description="是否生成默认的自定义扩展cs" %>
+
 <%@ Property Name="FilterString" Type="System.String" Default="^" Optional="True" Category="表或视图名过滤" Description="通过正则表达式对表名或视图名进行过滤，符合条件的才生成三层架构" %>
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Import Namespace="SchemaExplorer" %>
@@ -37,11 +40,15 @@ foreach (TableSchema table in SourceDatabase.Tables)
 	{
 		OutputEntityTemplate(table);
 		OutputOperatorTemplate(table);
-		OutputTableDALExtension(table);
 		OutputPropertyMapTemplate(table);
 		OutputTableBLLTemplate(table);
-		OutputTableBLLExtension(table);
-		OutputTableModelExtension(table);
+        
+        if(CreateExtensionCsFile)
+        {
+		    OutputTableDALExtension(table);
+		    OutputTableBLLExtension(table);
+		    OutputTableModelExtension(table);
+        }
 		Response.Write("\r\n");
 	}
 }

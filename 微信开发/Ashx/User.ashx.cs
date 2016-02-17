@@ -114,14 +114,31 @@ namespace WebChatDep.Ashx
                // BJCUser.Select();
                 #endregion
 
+                bool isExist = BJCUser.Select("UserName=@UserName", new ParameterList("@UserName", regUserName)).Count > 0;
+
+                if(isExist)
+                {
+                    json.success = false;
+                    json.msg = "账号已存在，请重新输入";
+                    return;
+                }
+
                 user.UserName = regUserName;
                 user.NickName = regNickName;
                 user.PassWord= regPassword;
                 user.Email = regEmail;
-                int i = BJCUser.Insert(user);
+                Guid tempGuid= BJCUser.Insert(user);
 
-                json.success = true;
-                json.msg = "新增成功";
+                if (tempGuid != new Guid())
+                {
+                    json.success = true;
+                    json.msg = "新增成功";
+                }
+                else
+                {
+                    json.success = false;
+                    json.msg = "新增失败";
+                }
             }
             catch (Exception e)
             {

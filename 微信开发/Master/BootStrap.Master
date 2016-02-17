@@ -9,12 +9,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
     <title runat=server>WangxuHub</title>
-    <link rel="shortcut icon" href="/Resource/image/shortCut.ico">
+    <link rel="shortcut icon" href="/Resource/image/favicon.ico">
     <link href="../Resource/css/animate.css" rel="stylesheet" type="text/css" />
     
     <script src="../Resource/js/jquery.min.js" type="text/javascript"></script>
     
-    <script src="../Resource/js/Common.js" type="text/javascript"></script>
+    <script src="../Resource/js/Common.js" type="text/javascript"></script> 
     <!-- Bootstrap -->
     <link href="../Resource/js/bootstrap-3.3.5/dist/css/bootstrap.min.css" rel="stylesheet" />
       
@@ -88,6 +88,15 @@
                        </li>
                        <li>
                            <a href="#">关于</a>
+                       </li>
+                       <li class="dropdown">
+                           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                               链接
+                               <span class="caret"></span>
+                           </a>
+                           <ul class="dropdown-menu" role="menu">
+                               <li><a href="subwebsite/angularIndex.html" target="_blank">Angular</a></li>
+                           </ul>
                        </li>
                    </ul>
 
@@ -214,8 +223,11 @@
             </div>
           </div>
           <div class="form-group">
-            <div class="col-sm-offset-4 col-sm-5">
+            <div class="col-sm-offset-4 col-sm-4">
               <button id="regSubmit" class="btn btn-primary">注册</button>
+            </div>
+            <div class="col-sm-4">
+                <p class="form-control-static"></p>
             </div>
           </div>
         </form>
@@ -297,7 +309,14 @@
         postData.regEmail = regEmail;
 
         $.post("/Ashx/User.ashx", postData, function (json) {
-            if (json.success) {
+            if (json.success) {//注册成功
+                var jqInfo = $("#regSubmit").parent().next().children(".form-control-static").text("注册成功");
+
+                jqInfo.addClass("text-success bounce animated");
+                setTimeout(function () {
+                    jqInfo.removeClass("bounce");
+                }, 1500);
+                return false;
             }
             else {
                 showWaining($("#regNickName"), json.msg)

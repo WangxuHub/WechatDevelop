@@ -153,6 +153,7 @@
     <Content Include="Master\BootStrap.Master" />
     <Content Include="Master\BootStrapResource.Master" />
     <Content Include="Ashx\User.ashx" />
+    <None Include="Properties\PublishProfiles\本地.pubxml" />
     <None Include="Properties\PublishProfiles\西部网络 虚拟主机.pubxml" />
     <Content Include="Resource\qqOAuth\Image\Connect_logo_1.png" />
     <Content Include="Resource\qqOAuth\Image\Connect_logo_2.png" />
@@ -164,13 +165,6 @@
     <Content Include="UserControl\WeChatConfigControl.ascx" />
     <Content Include="WeChatSDK.aspx" />
     <Content Include="WeChatServer.ashx" />
-    <Content Include="web.config" />
-    <Content Include="web.Debug.config">
-      <DependentUpon>web.config</DependentUpon>
-    </Content>
-    <Content Include="web.Release.config">
-      <DependentUpon>web.config</DependentUpon>
-    </Content>
     <None Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.css.map" />
     <None Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap.css.map" />
     <None Include="Resource\js\bootstrap-3.3.5\dist\fonts\glyphicons-halflings-regular.eot" />

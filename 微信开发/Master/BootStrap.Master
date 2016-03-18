@@ -5,8 +5,8 @@
 <html lang="zh-CN">
   <head runat=server>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=320, initial-scale=1">
     <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
     <title runat=server>WangxuHub</title>
     <link rel="shortcut icon" href="/Resource/image/favicon.ico">
@@ -95,7 +95,8 @@
                                <span class="caret"></span>
                            </a>
                            <ul class="dropdown-menu" role="menu">
-                               <li><a href="subwebsite/angularIndex.html" target="_blank">Angular</a></li>
+                               <li><a href="/subwebsite/angularIndex.html" target="_blank">Angular</a></li>
+                               <li><a href="/JqueryApi/index.html" target="_blank">JqueryApi</a></li>
                            </ul>
                        </li>
                    </ul>

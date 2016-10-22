@@ -35,9 +35,29 @@ namespace Common
             timestamp = context.Request.QueryString["timestamp"] ?? "";
             nonce = context.Request.QueryString["nonce"] ?? "";
             echoStr = context.Request.QueryString["echoStr"];
-           
 
-          //  WeChatCrypt = Tencent.WXBizMsgCrypt(WeChatAppInfo.Token, WeChatAppInfo.sEncodingAESKey, WeChatAppInfo.AppID);
+
+            #region 认证判断
+            string[] tempArr = new[] {timestamp,nonce,Common.WeChatAppInfo.Token };
+            tempArr = tempArr.OrderBy(item => item).ToArray();
+            string tempStr = string.Join("",tempArr);
+            string tempSha1Str = WeChatHelper.GetSHA1EnryptStr(tempStr);
+
+            if (tempSha1Str != signature) {
+                con.Response.Write("无验证请求");
+                con.Response.End();
+                return;
+            }
+            if (!string.IsNullOrEmpty(echoStr))
+            {
+                context.Response.Write(echoStr);
+                context.Response.End();
+                return;
+            }
+            #endregion 
+
+
+            //  WeChatCrypt = Tencent.WXBizMsgCrypt(WeChatAppInfo.Token, WeChatAppInfo.sEncodingAESKey, WeChatAppInfo.AppID);
 
             string requestContent = System.Text.Encoding.UTF8.GetString(context.Request.BinaryRead(context.Request.TotalBytes));
 
@@ -50,14 +70,7 @@ namespace Common
                 context.Response.End();
                 return;
             }
-            else if (!string.IsNullOrEmpty(echoStr))
-            {
-                context.Response.Write(echoStr);
-                context.Response.End();
-                return;
-            }
-
-
+          
             XmlDocument doc = new XmlDocument();
            
             doc.LoadXml(sMsg);

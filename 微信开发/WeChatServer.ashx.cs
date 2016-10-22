@@ -58,13 +58,13 @@ namespace WebChatDep
         //订阅,订阅事件可以接收，也能回复
         private void Subscribe(XmlDocument doc)
         {
-            //string retMsg = "无形公会，最为致命\r\n入会！！！！";
+            string retMsg = "无形公会，最为致命！！！！";
 
             //#region 数据库新增
             //DBModel.WXUser user = new DBModel.WXUser();
             //user.OpenID = doc.FirstChild["FromUserName"].InnerText;
             //user.CreateTime = doc.FirstChild["CreateTime"].InnerText.ToDateTimeFromWeChatSecond();
-            //if(DBBLL.BWXUser.Insert(user)<=0)
+            //if (DBBLL.BWXUser.Insert(user) <= 0)
             //{
             //    return;
             //}
@@ -72,14 +72,14 @@ namespace WebChatDep
 
 
 
-            //base.ResponseDataForText(doc, retMsg);
-            //return;
+            base.ResponseDataForText(doc, retMsg);
+            return;
         }
 
         //取消订阅事件，可以接收，微信客户端无法接收回复消息
         private void UnSubscribe(XmlDocument doc)
         {
-            string retMsg = "割袍断义?赶紧回来!!!!!";
+            string retMsg = "取消订阅!!";
             base.ResponseDataForText(doc, retMsg);
             return;
         }

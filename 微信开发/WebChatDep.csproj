@@ -20,6 +20,7 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <TargetFrameworkProfile />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -138,6 +139,13 @@
     <Compile Include="UserControl\WeChatConfigControl.ascx.designer.cs">
       <DependentUpon>WeChatConfigControl.ascx</DependentUpon>
     </Compile>
+    <Compile Include="WeChatUser.aspx.cs">
+      <DependentUpon>WeChatUser.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WeChatUser.aspx.designer.cs">
+      <DependentUpon>WeChatUser.aspx</DependentUpon>
+    </Compile>
     <Compile Include="WeChatSDK.aspx.cs">
       <DependentUpon>WeChatSDK.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -163,6 +171,7 @@
     <Content Include="Resource\qqOAuth\Image\Connect_logo_6.png" />
     <Content Include="Resource\qqOAuth\Image\Connect_logo_7.png" />
     <Content Include="UserControl\WeChatConfigControl.ascx" />
+    <Content Include="WeChatUser.aspx" />
     <Content Include="WeChatSDK.aspx" />
     <Content Include="WeChatServer.ashx" />
     <None Include="Resource\js\bootstrap-3.3.5\dist\css\bootstrap-theme.css.map" />

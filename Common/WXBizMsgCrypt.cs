@@ -78,7 +78,11 @@ namespace Tencent
                 { 
                     doc.LoadXml(sPostData);
                     root = doc.FirstChild;
-                    sEncryptMsg = root["Encrypt"].InnerText;
+                    sEncryptMsg = root["Encrypt"]?.InnerText;
+                    if (string.IsNullOrEmpty(sEncryptMsg)) {
+                        sMsg = sPostData;
+                        return 0;
+                    }
                 }
             }
             catch (Exception)

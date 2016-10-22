@@ -95,7 +95,7 @@
                                <span class="caret"></span>
                            </a>
                            <ul class="dropdown-menu" role="menu">
-                               <li><a href="/subwebsite/angularIndex.html" target="_blank">Angular</a></li>
+                               <li><a href="/AngularJS/angularIndex.html" target="_blank">Angular</a></li>
                                <li><a href="/JqueryApi/index.html" target="_blank">JqueryApi</a></li>
                            </ul>
                        </li>

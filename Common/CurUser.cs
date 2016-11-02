@@ -12,7 +12,7 @@ namespace Common
         /// </summary>
         public static bool IsLogin
         {
-            get{
+            get{    
                 Object temp= System.Web.HttpContext.Current.Session["CurUserDetailInfo"];
                 if(temp!=null && temp is CurUserDetailInfo)
                    return true;
